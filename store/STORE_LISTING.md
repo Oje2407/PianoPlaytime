@@ -47,7 +47,7 @@ Little Keys is screen time that builds a real skill. Pay once and every lesson, 
 piano,kids,keyboard,music,learn,children,songs,toddler,preschool,notes,lessons,games,colour,toy
 
 ## Price
-- One-time purchase: **US$9.99** (UK £9.99, EU €9.99 if you round the converted prices)
+- One-time purchase: **US$4.99** (UK £4.99, EU €4.99 if you round the converted prices)
 - No in-app purchases, no subscriptions
 
 ## Category

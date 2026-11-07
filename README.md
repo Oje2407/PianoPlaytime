@@ -1,6 +1,6 @@
 # Little Keys: phone app
 
-A piano learning app for children, ready for the Apple App Store and Google Play as a **paid app at US$9.99**.
+A piano learning app for children, ready for the Apple App Store and Google Play as a **paid app at US$4.99**.
 It works fully offline and has no ads, no in-app purchases, no accounts and no links out of the app.
 
 ## What's in this folder
@@ -49,12 +49,12 @@ To test on an iPhone before release, use TestFlight (Step 4).
 5. **Set up payments first.** In Play Console go to **Settings → Payments profile** and create a payments profile with your bank account. Google won't let you set a price without one.
 6. Choose **Create app**: name "Little Keys: Piano for Kids", type App, **Paid**.
    > Important: a Google Play app that has been published as free can never be changed to paid. Make sure it says **Paid** before you publish anything.
-7. Set the price: **Monetize with Play → Products → App pricing**, enter **US$9.99**, and let Google convert it for other countries (you can round them, e.g. £9.99, €9.99). Google collects and pays VAT for you in the UK and most other countries.
+7. Set the price: **Monetize with Play → Products → App pricing**, enter **US$4.99**, and let Google convert it for other countries (you can round them, e.g. £4.99, €4.99). Google collects and pays VAT for you in the UK and most other countries.
 8. Fill in the rest:
    - **Store listing:** paste the text from `store/STORE_LISTING.md` and add the images from `store/`.
    - **App content:** privacy policy link, Ads = No, Data safety = no data collected, Target audience = the child age groups, content rating questionnaire. All the answers are in `store/STORE_LISTING.md`.
    - **Testing → Closed testing:** upload the `.aab`, add your 12+ testers by email, and roll out.
-   - So your testers don't pay $9.99, also add their Gmail addresses under **Settings → License testing**. They can then install the app free.
+   - So your testers don't pay $4.99, also add their Gmail addresses under **Settings → License testing**. They can then install the app free.
    - After 14 days, choose **Apply for production**, then submit.
 
 ## Step 4: Apple App Store (no Mac needed)
@@ -77,7 +77,7 @@ To test on an iPhone before release, use TestFlight (Step 4).
    - screenshots from `store/screenshots` (6.9-inch iPhone and 13-inch iPad)
    - App Privacy = Data Not Collected
    - in **App Information**, choose the **Kids** category and an age band
-   - in **Pricing and Availability**, set the base country to United States and the price to **US$9.99**; Apple sets matching prices in every other country (for example £9.99 in the UK) and handles VAT
+   - in **Pricing and Availability**, set the base country to United States and the price to **US$4.99**; Apple sets matching prices in every other country (for example £4.99 in the UK) and handles VAT
 7. Pick the TestFlight build and choose **Submit for Review**. Review usually takes one to three days.
 
 **If you have a Mac:** run `npm ci && npx cap sync ios && npx cap open ios`, choose your team under **Signing & Capabilities**, then **Product → Archive → Distribute App**.
@@ -94,7 +94,7 @@ Edit `www/index.html` and upload it to GitHub. The builds number themselves auto
 
 ## What you'll receive per sale
 
-Both stores keep 15% for small developers (Apple only after you join the Small Business Program; Google applies 15% to your first US$1 million automatically). Before that commission, sales tax or VAT is taken off the shopper's price. In the UK that leaves roughly £7 from each £9.99 sale. Apple pays monthly and Google monthly, into the bank account you added.
+Both stores keep 15% for small developers (Apple only after you join the Small Business Program; Google applies 15% to your first US$1 million automatically). Before that commission, sales tax or VAT is taken off the shopper's price. In the UK that leaves roughly £3.50 from each £4.99 sale. Apple pays monthly and Google monthly, into the bank account you added.
 
 ## Why this suits the Kids categories
 
