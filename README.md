@@ -21,7 +21,7 @@ The app ID is `app.littlekeys.piano`. It is permanent once you upload, so change
 
 ## Step 1: Put the project on GitHub (once)
 
-1. Create a free account at github.com and a new **private** repository called `little-keys`.
+1. Create a free account at github.com and a new **private** repository called `pianoplaytime`.
 2. Upload this whole folder to the repository. The GitHub Desktop app is the easiest way; drag-and-drop on the website also works.
 3. Open the **Actions** tab. The **Android build** runs by itself on every upload.
 
@@ -86,7 +86,7 @@ To test on an iPhone before release, use TestFlight (Step 4).
 
 1. Put your contact email into `docs/privacy.html` in place of `YOUR-CONTACT-EMAIL`.
 2. In GitHub, go to **Settings → Pages**, set Source to **Deploy from a branch**, then choose branch `main` and folder `/docs`.
-3. Your link is `https://YOUR-GITHUB-NAME.github.io/little-keys/privacy.html`. GitHub Pages on a private repository needs a paid GitHub plan; otherwise make the repository public or host the page anywhere.
+3. Your link is `https://oje2407.github.io/pianoplaytime/privacy.html`. GitHub Pages on a private repository needs a paid GitHub plan; otherwise make the repository public or host the page anywhere.
 
 ## Updating the app later
 

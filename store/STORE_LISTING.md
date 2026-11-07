@@ -58,7 +58,7 @@ piano,kids,keyboard,music,learn,children,songs,toddler,preschool,notes,lessons,g
 First release: 5 lessons, 5 songs, 2 games and free play.
 
 ## Support and privacy
-- Privacy policy URL: https://YOUR-GITHUB-NAME.github.io/little-keys/privacy.html
+- Privacy policy URL: https://oje2407.github.io/pianoplaytime/privacy.html
 - Support URL: the same page, or any page with your contact email.
 
 ## Answers for the forms
