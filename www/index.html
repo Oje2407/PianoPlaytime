@@ -32,7 +32,7 @@ img{max-width:100%}
 :root[data-theme="dark"]{ --bg:#121729; --surface:#1B2240; --ink:#EEF1FA; --muted:#A4ADCA; --line:#2C3458; --chip:#262E52; --lid:#0B0E1A; color-scheme:dark }
 
 html,body{height:100%}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:1rem;line-height:1.5;overflow:hidden;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;overscroll-behavior:none}
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible,.key:focus-visible{outline:3px solid var(--n-G);outline-offset:2px}
 .app{height:100%;display:flex;flex-direction:column}
@@ -49,7 +49,7 @@ button:focus-visible,.key:focus-visible{outline:3px solid var(--n-G);outline-off
 
 /* stage */
 .stage{flex:1;min-height:0;overflow:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:8px 16px}
-.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.wrap{max-width:61rem;margin:0 auto;display:flex;flex-direction:column;gap:14px}
 h2{font-family:var(--f-display);font-weight:800;font-size:clamp(1.5rem,4vw,2rem);line-height:1.1;margin:0;text-wrap:balance}
 h3{font-family:var(--f-display);font-weight:700;font-size:1.2rem;line-height:1.15;margin:0}
 .eyebrow{font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0}
@@ -76,14 +76,15 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1.2rem;line-height:1.1
 .fb.ok{color:var(--good)} .fb.no{color:var(--bad)}
 
 /* note bubbles */
-.bubbles{position:relative;display:flex;gap:8px;overflow-x:auto;padding:14px 10px 10px;scrollbar-width:thin}
-.bub{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:44px}
-.bub .dot{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:1.25rem;color:#fff;background:var(--c);transition:transform .2s,opacity .2s}
+.bubbles{position:relative;display:flex;gap:.8rem;overflow-x:auto;padding:14px 10px 10px;scrollbar-width:thin}
+.bub{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:2.75rem}
+.bub .dot{width:2.65rem;height:2.65rem;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:1.25rem;color:#fff;background:var(--c);transition:transform .2s,opacity .2s}
 .bub.lt .dot{color:#2A2400}
 .bub small{font-size:.85rem;color:var(--muted);white-space:nowrap}
 .bub .fing{font-size:.72rem;font-weight:700;color:var(--muted)}
 .bub.done .dot{opacity:.35;transform:scale(.85)}
-.bub.cur .dot{transform:scale(1.18);box-shadow:0 0 0 4px var(--surface),0 0 0 7px var(--c)}
+.bub.cur .dot{transform:scale(1.1);box-shadow:0 0 0 3px var(--surface),0 0 0 6px var(--c)}
+.bub.cur{gap:.55rem}
 .bub.cur small{color:var(--ink);font-weight:700}
 
 /* games */
@@ -105,6 +106,8 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1.2rem;line-height:1.1
 .seg{display:inline-flex;background:var(--chip);border-radius:999px;padding:3px}
 .seg button{border:0;background:transparent;border-radius:999px;padding:6px 14px;font-weight:700;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink)}
+.seg button:disabled{opacity:.35;cursor:default}
+.seg{flex-wrap:wrap}
 .setting{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--line)}
 details{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px}
 summary{font-weight:700;cursor:pointer}
@@ -113,13 +116,13 @@ details li{margin:4px 0}
 
 /* keyboard dock */
 .dock{flex:none;background:var(--lid);padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px));padding-block:10px max(10px,env(safe-area-inset-bottom,0px))}
-.lidline{max-width:1100px;margin:0 auto 6px;display:flex;justify-content:space-between;color:#8E95B0;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase}
-.keys{position:relative;display:flex;max-width:1100px;margin:0 auto;height:clamp(140px,26vh,220px);touch-action:none;user-select:none;-webkit-user-select:none;border-top:5px solid var(--felt)}
+.lidline{max-width:1800px;margin:0 auto 6px;display:flex;justify-content:space-between;color:#8E95B0;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase}
+.keys{position:relative;display:flex;max-width:1800px;margin:0 auto;height:clamp(140px,30vh,340px);touch-action:none;user-select:none;-webkit-user-select:none;border-top:5px solid var(--felt)}
 .key{-webkit-tap-highlight-color:transparent}
 .white{flex:1;min-width:0;background:var(--key-white);border:1px solid var(--key-edge);border-top:0;border-radius:0 0 10px 10px;position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;padding-bottom:10px;transition:background .08s,transform .08s;transform-origin:top}
-.white .lab{width:min(30px,80%);aspect-ratio:1;border-radius:50%;background:var(--nc);color:#fff;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:clamp(.8rem,2.4vw,1.05rem);line-height:1}
+.white .lab{width:min(2.3rem,80%);aspect-ratio:1;border-radius:50%;background:var(--nc);color:#fff;display:grid;place-items:center;font-family:var(--f-display);font-weight:800;font-size:clamp(.8rem,2.4vw,1.25rem);line-height:1}
 .white.lt .lab{color:#2A2400}
-.white .mid{font-size:.6rem;font-weight:700;color:#7A8096;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap}
+.white .mid{font-size:clamp(.45rem,1.15vw,.62rem);font-weight:700;color:#7A8096;text-transform:uppercase;letter-spacing:.02em;white-space:nowrap;max-width:100%;overflow:hidden;text-align:center}
 .nolabels .white .lab{background:transparent;color:transparent;box-shadow:inset 0 -4px 0 var(--nc)}
 .white.down{background:color-mix(in srgb,var(--nc) 38%,var(--key-white));transform:scaleY(.985)}
 .black{position:absolute;top:0;height:60%;background:linear-gradient(var(--key-black-top),var(--key-black) 30%);border-radius:0 0 7px 7px;z-index:2;box-shadow:0 3px 4px rgba(0,0,0,.35);transition:background .08s}
@@ -141,6 +144,11 @@ details li{margin:4px 0}
 .bigstars i:nth-child(2){animation-delay:.15s}.bigstars i:nth-child(3){animation-delay:.3s}
 @keyframes pop{from{transform:scale(0) rotate(-40deg)}}
 
+/* tablets and computers: scale the whole interface up so it fills the screen */
+@media (min-width:900px) and (min-height:700px){html{font-size:18px}}
+@media (min-width:740px) and (min-height:950px){html{font-size:19px}}
+@media (min-width:1300px) and (min-height:850px){html{font-size:20px}}
+@media (min-width:1800px) and (min-height:1000px){html{font-size:22px}}
 @media (max-width:520px){
   .brand{font-size:1.35rem}
   .tabs button{font-size:.92rem;padding:7px 4px}
@@ -155,7 +163,11 @@ details li{margin:4px 0}
   .tabs button{padding:5px 4px;font-size:.9rem}
   .lidline{display:none}
   .dock{padding-block:6px max(6px,env(safe-area-inset-bottom,0px))}
-  .keys{height:44vh}
+  .keys{height:40vh}
+  .stage .eyebrow{display:none}
+  .bubbles{padding:10px 8px 6px}
+  .bub small{font-size:.8rem}
+  .fb{min-height:0}
   .stage{padding-block:4px 8px}
   .panel{padding:12px;gap:8px}
   .say{font-size:1.05rem}
@@ -205,7 +217,7 @@ const $=s=>document.querySelector(s);
 const stage=$('#stage'), keysEl=$('#keys'), modal=$('#modal');
 
 /* ---------- saved progress & settings ---------- */
-const store={best:{},labels:true,sound:'piano'};
+const store={best:{},labels:true,sound:'piano',octaves:'auto'};
 try{Object.assign(store,JSON.parse(localStorage.getItem('littlekeys.v1')||'{}'))}catch(e){}
 function save(){try{localStorage.setItem('littlekeys.v1',JSON.stringify(store))}catch(e){}}
 function award(id,s){if((store.best[id]||0)<s){store.best[id]=s;save()}updateStars()}
@@ -234,11 +246,20 @@ let timers=[];const later=(fn,ms)=>timers.push(setTimeout(fn,ms));
 const clearTimers=()=>{timers.forEach(clearTimeout);timers=[]};
 
 /* ---------- keyboard ---------- */
-const KEYMAP={a:'C4',w:'C#4',s:'D4',e:'D#4',d:'E4',f:'F4',t:'F#4',g:'G4',y:'G#4',h:'A4',u:'A#4',j:'B4',k:'C5',o:'C#5',l:'D5',p:'D#5',';':'E5'};
-let octaves=0;
+/* computer keyboard: A-row plays notes, Z and X move down or up an octave */
+const KEYOFF={a:0,w:1,s:2,e:3,d:4,f:5,t:6,g:7,y:8,h:9,u:10,j:11,k:12,o:13,l:14,p:15,';':16,"'":17};
+const nameOf=m=>PCS[m%12]+(Math.floor(m/12)-1);
+let compOct=4;
+/* how many octaves fit: never let a white key get narrower than about 30px */
+function maxOctaves(){return Math.max(1,Math.min(4,Math.floor((keysEl.clientWidth||window.innerWidth)/(7.5*30))))}
+function autoOctaves(){const w=keysEl.clientWidth||window.innerWidth;return w<640?1:w<1100?2:w<1600?3:4}
+function wantOctaves(){const pick=store.octaves==='auto'||!store.octaves?autoOctaves():+store.octaves;return Math.min(pick,maxOctaves())}
+const START={1:4,2:4,3:3,4:2}; /* keep middle C on screen and near the middle */
+let octaves=0,lowOct=4;
 function buildKeys(){
-  octaves=window.innerWidth<640?1:2;
-  const notes=[];for(let o=4;o<4+octaves;o++)PCS.forEach(p=>notes.push(p+o));notes.push('C'+(4+octaves));
+  octaves=wantOctaves();lowOct=START[octaves];
+  const notes=[];for(let o=lowOct;o<lowOct+octaves;o++)PCS.forEach(p=>notes.push(p+o));notes.push('C'+(lowOct+octaves));
+  compOct=Math.min(Math.max(compOct,lowOct),lowOct+octaves-1);updateHint();
   const whites=notes.filter(n=>!n.includes('#')),w=100/whites.length;
   let html='',wi=0;
   notes.forEach(n=>{
@@ -260,8 +281,12 @@ keysEl.addEventListener('pointerdown',e=>{const k=e.target.closest('.key');if(!k
 keysEl.addEventListener('pointermove',e=>{if(!dragging)return;const el=document.elementFromPoint(e.clientX,e.clientY);const k=el&&el.closest&&el.closest('.key');if(k&&k!==lastDrag){lastDrag=k;press(k.dataset.note)}});
 addEventListener('pointerup',()=>{dragging=false;lastDrag=null});
 addEventListener('pointercancel',()=>{dragging=false;lastDrag=null});
-addEventListener('keydown',e=>{if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;const n=KEYMAP[e.key.toLowerCase()];if(n&&keyEl(n)){e.preventDefault();press(n)}});
-let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if((window.innerWidth<640?1:2)!==octaves)buildKeys()},150)});
+function updateHint(){const h=$('#lidHint');if(!h)return;
+  h.textContent=matchMedia('(pointer:fine)').matches?`Keys A to K play C${compOct} up · Z and X change octave`:'Tap or slide along the keys'}
+addEventListener('keydown',e=>{if(e.repeat||e.metaKey||e.ctrlKey||e.altKey)return;const k=e.key.toLowerCase();
+  if(k==='z'||k==='x'){compOct=Math.min(Math.max(compOct+(k==='z'?-1:1),lowOct),lowOct+octaves-1);updateHint();e.preventDefault();return}
+  if(!(k in KEYOFF))return;const n=nameOf((compOct+1)*12+KEYOFF[k]);if(keyEl(n)){e.preventDefault();press(n)}});
+let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(wantOctaves()!==octaves)buildKeys();renderSizeSeg()},150)});
 
 let activity=null;
 function press(n){tone(n);flash(n);if(activity&&!activity.locked)activity.onNote(n)}
@@ -351,7 +376,7 @@ function viewLearn(){
    <li>Sit your child level with middle C, feet flat or on a box, elbows just above the keys.</li>
    <li>Little and often works best: ten minutes a day beats an hour once a week.</li>
    <li>Lessons 1 to 3 cover the first five songs. Let them repeat a favourite as many times as they like.</li>
-   <li class="desk">On a computer, the letter keys A to K play the white notes, and W E T Y U play the black ones.</li></ul></details></div>`;
+   <li class="desk">On a computer, the letter keys A to K play the white notes and W E T Y U play the black ones. Press Z or X to move down or up an octave.</li></ul></details></div>`;
   stage.querySelectorAll('.card').forEach(c=>c.onclick=()=>openLesson(+c.dataset.i));
 }
 
@@ -461,14 +486,19 @@ function openCopyCat(){
   newSeq();draw('Get ready…');later(playSeq,400);
 }
 
+function renderSizeSeg(){const el=$('#segOct');if(!el)return;const cur=store.octaves||'auto',mx=maxOctaves();
+  el.innerHTML=['auto','1','2','3','4'].map(v=>`<button data-v="${v}" aria-pressed="${cur===v}" ${v!=='auto'&&+v>mx?'disabled title="Too small for this screen"':''}>${v==='auto'?'Auto':v+(v==='1'?' octave':'')}</button>`).join('')}
 function viewPlay(){
   stage.innerHTML=`<div class="wrap"><div><p class="eyebrow">Free play</p><h2>Make up your own music</h2></div>
    <div class="panel"><div class="now"><div class="bigcard" id="nowCard" style="--c:var(--chip);color:var(--muted)"><b>♪</b><span>Play!</span></div>
      <div><h3 id="nowName">Press any key</h3><p class="lede" id="nowSub">Try sliding your finger along the keys, or play only the black keys. They always sound good together.</p></div></div>
      <div class="setting"><span>Letters on the keys</span><div class="seg" id="segLab"><button aria-pressed="${store.labels}" data-v="1">Show</button><button aria-pressed="${!store.labels}" data-v="0">Hide</button></div></div>
+     <div class="setting"><span>Keyboard size</span><div class="seg" id="segOct"></div></div>
      <div class="setting"><span>Sound</span><div class="seg" id="segSnd"><button aria-pressed="${store.sound==='piano'}" data-v="piano">Piano</button><button aria-pressed="${store.sound==='bells'}" data-v="bells">Music box</button></div></div>
    </div></div>`;
   $('#segLab').onclick=e=>{const b=e.target.closest('button');if(!b)return;store.labels=b.dataset.v==='1';save();keysEl.classList.toggle('nolabels',!store.labels);$('#segLab').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};
+  renderSizeSeg();
+  $('#segOct').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;store.octaves=b.dataset.v;save();buildKeys();renderSizeSeg()};
   $('#segSnd').onclick=e=>{const b=e.target.closest('button');if(!b)return;store.sound=b.dataset.v;save();$('#segSnd').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));tone('G4')};
   activity={locked:false,targets:()=>[],onNote(n){
     const card=$('#nowCard'),sharp=n.includes('#'),l=n[0];

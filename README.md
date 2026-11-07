@@ -1,6 +1,6 @@
-# Little Keys: phone app
+# Little Keys
 
-A piano learning app for children, ready for the Apple App Store and Google Play as a **paid app at US$4.99**.
+A piano learning app for children for iPhone, iPad, Android phones and tablets, Mac and Windows. It's ready for the Apple App Store, Google Play and the Microsoft Store as a **paid app at US$4.99**.
 It works fully offline and has no ads, no in-app purchases, no accounts and no links out of the app.
 
 ## What's in this folder
@@ -9,13 +9,27 @@ It works fully offline and has no ads, no in-app purchases, no accounts and no l
 |---|---|
 | `www/` | The app itself (one page, with fonts bundled so it works offline) |
 | `android/` | Android Studio project (targets Android 16 / API 36, as Google Play now requires) |
-| `ios/` | Xcode project for iPhone and iPad |
+| `ios/` | Xcode project for iPhone and iPad (also runs on Apple silicon Macs) |
+| `desktop/` | Windows and Mac desktop app (Electron) |
 | `assets/` | Source icon and splash screen; `npm run assets` regenerates every size from them |
-| `.github/workflows/` | Cloud builds, so you don't need Android Studio or a Mac |
+| `.github/workflows/` | Cloud builds for Android, iPhone/iPad, Windows and Mac, so you don't need Android Studio or a Mac |
 | `store/` | Store text, form answers, screenshots, feature graphic, 512px icon |
 | `docs/privacy.html` | Privacy policy page (both stores require a public link to one) |
 
-The app ID is `app.littlekeys.piano`. It is permanent once you upload, so change it now if you want your own (for example `uk.co.yourbrand.littlekeys`). Edit it in `capacitor.config.json`, `android/app/build.gradle` (two places) and the Xcode project, then run `npx cap sync`.
+The app ID is `app.littlekeys.piano`. It is permanent once you upload, so change it now if you want your own (for example `uk.co.yourbrand.littlekeys`). Edit it in `capacitor.config.json`, `android/app/build.gradle` (two places), the Xcode project and `desktop/package.json`, then run `npx cap sync`.
+
+## Screen sizes
+
+The keyboard sizes itself to the screen, and the text scales up on tablets and computers:
+
+| Screen | Keyboard |
+|---|---|
+| Phone, upright | 1 octave |
+| Phone sideways, tablet upright | 2 octaves |
+| Tablet sideways, laptop | 3 octaves |
+| Large monitor | 4 octaves |
+
+Middle C always stays on screen. Children (or parents) can pick a size under **Free play → Keyboard size**; sizes too small to tap on that screen are greyed out. On a computer, A to K play notes and Z and X move down or up an octave.
 
 ---
 
@@ -82,7 +96,38 @@ To test on an iPhone before release, use TestFlight (Step 4).
 
 **If you have a Mac:** run `npm ci && npx cap sync ios && npx cap open ios`, choose your team under **Signing & Capabilities**, then **Product → Archive → Distribute App**.
 
-## Step 5: Publish the privacy policy
+## Step 5: Mac
+
+**To sell on the Mac App Store (recommended, no extra work or cost):** the iPad app runs on any Apple silicon Mac (2020 or newer).
+
+1. In App Store Connect, open the app → **Pricing and Availability**.
+2. Make sure **iPhone and iPad Apps on Apple Silicon Macs** is switched on.
+
+The app then appears in the Mac App Store at the same price. One purchase works on a family's iPhone, iPad and Mac.
+
+**Mac test version:** the **Desktop build** in Actions also makes `little-keys-mac-dmg`, a normal Mac app for Apple silicon and Intel Macs. It isn't signed by Apple, so the first time you open it, go to **System Settings → Privacy & Security** and click **Open Anyway**. Selling this version outside the App Store would need an Apple Developer ID certificate and notarisation, which can be added to the build later.
+
+## Step 6: Windows (Microsoft Store)
+
+**Account:** Microsoft Store developer registration is free for individuals at storedeveloper.microsoft.com.
+
+1. In **Partner Center**, create a new MSIX/PWA app and reserve the name "Little Keys: Piano for Kids".
+2. Open **Product management → Product identity** and copy three values into GitHub secrets:
+   - `MS_IDENTITY_NAME`: Package/Identity/Name
+   - `MS_PUBLISHER`: Package/Identity/Publisher (starts with `CN=`)
+   - `MS_PUBLISHER_DISPLAY_NAME`: Package/Properties/PublisherDisplayName
+3. Run **Desktop build (Windows and Mac)** from the Actions tab. It now also makes `little-keys-microsoft-store-appx`.
+4. In Partner Center, start a submission:
+   - **Pricing and availability:** US$4.99 (Microsoft converts it for other countries)
+   - **Properties:** category Education, then the privacy policy link
+   - **Age ratings:** the questionnaire; answer as for Google Play
+   - **Packages:** upload the `.appx`
+   - **Store listings:** text from `store/STORE_LISTING.md` plus desktop screenshots from `store/screenshots`
+5. Submit. Microsoft signs the package for you, and certification usually takes a few days. Microsoft keeps 15% of app sales.
+
+**Windows test version:** `little-keys-windows-installer` (from the same build) installs Little Keys straight away. Because it isn't signed, Windows SmartScreen may warn the first time: click **More info → Run anyway**. Store copies don't show this.
+
+## Step 7: Publish the privacy policy
 
 1. Put your contact email into `docs/privacy.html` in place of `YOUR-CONTACT-EMAIL`.
 2. In GitHub, go to **Settings → Pages**, set Source to **Deploy from a branch**, then choose branch `main` and folder `/docs`.
@@ -90,7 +135,7 @@ To test on an iPhone before release, use TestFlight (Step 4).
 
 ## Updating the app later
 
-Edit `www/index.html` and upload it to GitHub. The builds number themselves automatically, so each upload can go straight to Play Console and TestFlight. Version names are 1.0.(build number).
+Edit `www/index.html` and upload it to GitHub. Phones, tablets, Mac and Windows all use this same file. The builds number themselves automatically, so each upload can go straight to Play Console and TestFlight. For the Microsoft Store, raise `version` in `desktop/package.json` before each new submission. Version names are 1.0.(build number).
 
 ## What you'll receive per sale
 
@@ -113,6 +158,8 @@ Keep it that way. If you ever add purchases or links out, Apple requires a paren
 
 Both phones can lock a child inside one app:
 
+- **Windows:** use **Settings → Accounts → Family** to set up a child account with app and screen-time limits.
+- **Mac:** use **System Settings → Screen Time** for app limits.
 - **iPhone or iPad:** turn on **Settings → Accessibility → Guided Access**, open Little Keys, and triple-click the side button. You can also set a time limit there.
 - **Android:** turn on **Settings → Security → App pinning** (some phones call it Screen pinning), open Little Keys from the recent apps view, and choose **Pin**.
 

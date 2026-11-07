@@ -1,0 +1,68 @@
+name: Desktop build (Windows and Mac)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["www/**", "desktop/**", ".github/workflows/desktop.yml"]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    env:
+      HAS_STORE_IDENTITY: ${{ secrets.MS_IDENTITY_NAME != '' }}
+    defaults:
+      run:
+        working-directory: desktop
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci
+
+      - name: Build Windows installer (.exe, for testing and direct sharing)
+        run: npm run dist:win
+
+      - name: Build Microsoft Store package (.appx)
+        if: env.HAS_STORE_IDENTITY == 'true'
+        shell: bash
+        run: >
+          npx electron-builder --win appx --publish never
+          -c.appx.identityName="${{ secrets.MS_IDENTITY_NAME }}"
+          -c.appx.publisher="${{ secrets.MS_PUBLISHER }}"
+          -c.appx.publisherDisplayName="${{ secrets.MS_PUBLISHER_DISPLAY_NAME }}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: little-keys-windows-installer
+          path: desktop/dist/*.exe
+      - uses: actions/upload-artifact@v4
+        if: env.HAS_STORE_IDENTITY == 'true'
+        with:
+          name: little-keys-microsoft-store-appx
+          path: desktop/dist/*.appx
+
+  mac:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: desktop
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+      - run: npm ci
+      - name: Build Mac app (.dmg, Apple silicon and Intel)
+        run: npm run dist:mac
+      - uses: actions/upload-artifact@v4
+        with:
+          name: little-keys-mac-dmg
+          path: desktop/dist/*.dmg

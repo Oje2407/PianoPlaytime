@@ -10,3 +10,6 @@ ios/DerivedData/
 *.p8
 *.p12
 .DS_Store
+desktop/node_modules/
+desktop/dist/
+desktop/www/

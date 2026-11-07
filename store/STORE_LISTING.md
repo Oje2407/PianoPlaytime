@@ -1,6 +1,6 @@
 # Little Keys: store listing text
 
-Copy these into App Store Connect and Google Play Console.
+Copy these into App Store Connect, Google Play Console and Microsoft Partner Center.
 
 ## Name
 Little Keys: Piano for Kids
@@ -13,7 +13,7 @@ Learn piano with colours
 Learn piano with colourful keys, easy songs and fun note games. No ads, ever.
 
 ## Full description (both stores)
-Little Keys turns your phone or tablet into a colourful piano that teaches children to play.
+Little Keys turns your phone, tablet or computer into a colourful piano that teaches children to play. The keyboard grows to fit the screen: one octave on a phone, up to four on a big monitor.
 
 Every note has its own colour and animal friend: C for Cat, D for Dog, E for Elephant, and so on. Glowing keys show your child exactly what to press next, so they can play real songs from the very first day.
 
@@ -53,6 +53,7 @@ piano,kids,keyboard,music,learn,children,songs,toddler,preschool,notes,lessons,g
 ## Category
 - App Store: Education (secondary: Music). Kids category, age band "Ages 6–8" (or "Ages 5 and Under").
 - Google Play: Education. Target age groups: 5 and under, 6–8.
+- Microsoft Store: Education (subcategory Kids and family if offered). Age rating from the IARC questionnaire.
 
 ## What's new (version 1.0)
 First release: 5 lessons, 5 songs, 2 games and free play.
@@ -84,5 +85,6 @@ Answer "None" to every content question. Choose the Kids category with your age 
 - iPhone 6.9-inch (2868 × 1320): iphone-6.9in-*.png
 - iPad 13-inch (2752 × 2064): ipad-13in-*.png
 - Android phone (1920 × 1080): android-phone-*.png
+- Desktop, Microsoft Store and Mac (2880 × 1800): desktop-*.png
 - Play feature graphic (1024 × 500): feature-graphic.png
 - Play app icon (512 × 512): play-icon-512.png

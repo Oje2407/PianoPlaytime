@@ -1,0 +1,50 @@
+{
+  "name": "little-keys-desktop",
+  "productName": "Little Keys",
+  "version": "1.0.0",
+  "description": "Little Keys: a piano app for children",
+  "author": "Little Keys",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "copy-web": "node scripts/copy-web.js",
+    "start": "npm run copy-web && electron .",
+    "dist:win": "npm run copy-web && electron-builder --win nsis --publish never",
+    "dist:win-store": "npm run copy-web && electron-builder --win appx --publish never",
+    "dist:mac": "npm run copy-web && electron-builder --mac dmg --universal --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.9.3",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "app.littlekeys.piano",
+    "productName": "Little Keys",
+    "copyright": "Copyright © 2026 Little Keys",
+    "files": ["main.js", "www/**/*"],
+    "directories": { "buildResources": "build", "output": "dist" },
+    "win": { "icon": "build/icon.png" },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "artifactName": "LittleKeys-Setup-${version}.exe",
+      "shortcutName": "Little Keys"
+    },
+    "appx": {
+      "applicationId": "LittleKeys",
+      "displayName": "Little Keys: Piano for Kids",
+      "identityName": "REPLACE_FROM_PARTNER_CENTER",
+      "publisher": "CN=REPLACE_FROM_PARTNER_CENTER",
+      "publisherDisplayName": "REPLACE_FROM_PARTNER_CENTER",
+      "backgroundColor": "#1E2236",
+      "languages": ["en-GB", "en-US"],
+      "artifactName": "LittleKeys-${version}.appx"
+    },
+    "mac": {
+      "icon": "build/icon.png",
+      "category": "public.app-category.education",
+      "target": ["dmg"]
+    },
+    "dmg": { "artifactName": "LittleKeys-${version}.dmg" }
+  }
+}
