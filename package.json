@@ -1,0 +1,26 @@
+{
+  "name": "little-keys",
+  "version": "1.0.0",
+  "description": "Little Keys: a piano app for children",
+  "scripts": {
+    "sync": "cap sync",
+    "android": "cap open android",
+    "ios": "cap open ios",
+    "assets": "capacitor-assets generate --iconBackgroundColor '#1E2236' --iconBackgroundColorDark '#1E2236' --splashBackgroundColor '#1E2236' --splashBackgroundColorDark '#1E2236' --android --ios"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/core": "8.5.3",
+    "@capacitor/android": "8.5.3",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/app": "8.1.2",
+    "@capacitor/splash-screen": "8.0.2",
+    "@capacitor/status-bar": "8.0.4"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3",
+    "@capacitor/assets": "3.0.5"
+  },
+  "private": true
+}
