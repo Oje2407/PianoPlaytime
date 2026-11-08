@@ -1,6 +1,6 @@
 # Little Keys
 
-A piano learning app for children for iPhone, iPad, Android phones and tablets, Mac and Windows. It's ready for the Apple App Store, Google Play and the Microsoft Store as a **paid app at US$4.99**.
+A piano learning app for children for iPhone, iPad, Android phones and tablets, Mac and Windows. It's ready for the Apple App Store, Google Play and the Microsoft Store as a **free app**.
 It works fully offline and has no ads, no in-app purchases, no accounts and no links out of the app.
 
 ## What's in this folder
@@ -60,22 +60,17 @@ To test on an iPhone before release, use TestFlight (Step 4).
    - `ANDROID_KEYSTORE_BASE64`: the text from step 2
    - `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` (`upload`), `ANDROID_KEY_PASSWORD`
 4. Re-run **Android build**. A second download appears: `little-keys-play-store-aab` (the `.aab` file is what Google wants).
-5. **Set up payments first.** In Play Console go to **Settings → Payments profile** and create a payments profile with your bank account. Google won't let you set a price without one.
-6. Choose **Create app**: name "Little Keys: Piano for Kids", type App, **Paid**.
-   > Important: a Google Play app that has been published as free can never be changed to paid. Make sure it says **Paid** before you publish anything.
-7. Set the price: **Monetize with Play → Products → App pricing**, enter **US$4.99**, and let Google convert it for other countries (you can round them, e.g. £4.99, €4.99). Google collects and pays VAT for you in the UK and most other countries.
-8. Fill in the rest:
+5. Choose **Create app**: name "Little Keys: Piano for Kids", type App, **Free**.
+   > Important: once a Google Play app is published as free, it can never be changed to paid. You could still add in-app purchases later.
+6. Fill in the rest:
    - **Store listing:** paste the text from `store/STORE_LISTING.md` and add the images from `store/`.
    - **App content:** privacy policy link, Ads = No, Data safety = no data collected, Target audience = the child age groups, content rating questionnaire. All the answers are in `store/STORE_LISTING.md`.
    - **Testing → Closed testing:** upload the `.aab`, add your 12+ testers by email, and roll out.
-   - So your testers don't pay $4.99, also add their Gmail addresses under **Settings → License testing**. They can then install the app free.
    - After 14 days, choose **Apply for production**, then submit.
 
 ## Step 4: Apple App Store (no Mac needed)
 
 **Account:** Apple Developer Program, £79 (US$99) a year, at developer.apple.com.
-
-**Before you can charge:** in App Store Connect go to **Business** and accept the **Paid Apps Agreement**, then add your bank account and tax forms (from the UK this is the W-8BEN form). Apple won't sell the app until these show as Active. Also join the **App Store Small Business Program** (free) so Apple's commission is 15% instead of 30%.
 
 1. In **Certificates, Identifiers & Profiles → Identifiers**, register an App ID with bundle ID `app.littlekeys.piano`.
 2. In **App Store Connect → Apps → +**, create a new app with that bundle ID (name "Little Keys: Piano for Kids", SKU `littlekeys`).
@@ -91,21 +86,21 @@ To test on an iPhone before release, use TestFlight (Step 4).
    - screenshots from `store/screenshots` (6.9-inch iPhone and 13-inch iPad)
    - App Privacy = Data Not Collected
    - in **App Information**, choose the **Kids** category and an age band
-   - in **Pricing and Availability**, set the base country to United States and the price to **US$4.99**; Apple sets matching prices in every other country (for example £4.99 in the UK) and handles VAT
+   - in **Pricing and Availability**, set the price to **Free** and choose the countries to sell in (all, unless you want to limit it)
 7. Pick the TestFlight build and choose **Submit for Review**. Review usually takes one to three days.
 
 **If you have a Mac:** run `npm ci && npx cap sync ios && npx cap open ios`, choose your team under **Signing & Capabilities**, then **Product → Archive → Distribute App**.
 
 ## Step 5: Mac
 
-**To sell on the Mac App Store (recommended, no extra work or cost):** the iPad app runs on any Apple silicon Mac (2020 or newer).
+**To appear on the Mac App Store (recommended, no extra work or cost):** the iPad app runs on any Apple silicon Mac (2020 or newer).
 
 1. In App Store Connect, open the app → **Pricing and Availability**.
 2. Make sure **iPhone and iPad Apps on Apple Silicon Macs** is switched on.
 
-The app then appears in the Mac App Store at the same price. One purchase works on a family's iPhone, iPad and Mac.
+The app then appears in the Mac App Store, free, alongside the iPhone and iPad version.
 
-**Mac test version:** the **Desktop build** in Actions also makes `little-keys-mac-dmg`, a normal Mac app for Apple silicon and Intel Macs. It isn't signed by Apple, so the first time you open it, go to **System Settings → Privacy & Security** and click **Open Anyway**. Selling this version outside the App Store would need an Apple Developer ID certificate and notarisation, which can be added to the build later.
+**Mac test version:** the **Desktop build** in Actions also makes `little-keys-mac-dmg`, a normal Mac app for Apple silicon and Intel Macs. It isn't signed by Apple, so the first time you open it, go to **System Settings → Privacy & Security** and click **Open Anyway**. Sharing this version outside the App Store without the warning would need an Apple Developer ID certificate and notarisation, which can be added to the build later.
 
 ## Step 6: Windows (Microsoft Store)
 
@@ -118,12 +113,12 @@ The app then appears in the Mac App Store at the same price. One purchase works 
    - `MS_PUBLISHER_DISPLAY_NAME`: Package/Properties/PublisherDisplayName
 3. Run **Desktop build (Windows and Mac)** from the Actions tab. It now also makes `little-keys-microsoft-store-appx`.
 4. In Partner Center, start a submission:
-   - **Pricing and availability:** US$4.99 (Microsoft converts it for other countries)
+   - **Pricing and availability:** Free
    - **Properties:** category Education, then the privacy policy link
    - **Age ratings:** the questionnaire; answer as for Google Play
    - **Packages:** upload the `.appx`
    - **Store listings:** text from `store/STORE_LISTING.md` plus desktop screenshots from `store/screenshots`
-5. Submit. Microsoft signs the package for you, and certification usually takes a few days. Microsoft keeps 15% of app sales.
+5. Submit. Microsoft signs the package for you, and certification usually takes a few days.
 
 **Windows test version:** `little-keys-windows-installer` (from the same build) installs Little Keys straight away. Because it isn't signed, Windows SmartScreen may warn the first time: click **More info → Run anyway**. Store copies don't show this.
 
@@ -137,10 +132,6 @@ The app then appears in the Mac App Store at the same price. One purchase works 
 
 Edit `www/index.html` and upload it to GitHub. Phones, tablets, Mac and Windows all use this same file. The builds number themselves automatically, so each upload can go straight to Play Console and TestFlight. For the Microsoft Store, raise `version` in `desktop/package.json` before each new submission. Version names are 1.0.(build number).
 
-## What you'll receive per sale
-
-Both stores keep 15% for small developers (Apple only after you join the Small Business Program; Google applies 15% to your first US$1 million automatically). Before that commission, sales tax or VAT is taken off the shopper's price. In the UK that leaves roughly £3.50 from each £4.99 sale. Apple pays monthly and Google monthly, into the bank account you added.
-
 ## Why this suits the Kids categories
 
 Both stores have strict rules for children's apps. Little Keys meets them:
@@ -148,7 +139,7 @@ Both stores have strict rules for children's apps. Little Keys meets them:
 - no ads
 - no analytics or third-party SDKs
 - no data collection
-- no in-app purchases (the one-time download price is fine)
+- no purchases of any kind (the app is free)
 - no external links (so no parental gate is needed)
 - works offline
 

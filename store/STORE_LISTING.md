@@ -35,20 +35,19 @@ Up to three stars for every lesson, song and game.
 
 MADE FOR CHILDREN, TRUSTED BY PARENTS
 • No ads
-• No in-app purchases
+• Free, with nothing to buy
 • No accounts or sign-in
 • No data collected
 • Works completely offline
 • No links out of the app
 
-Little Keys is screen time that builds a real skill. Pay once and every lesson, song and game is yours, with nothing more to buy.
+Little Keys is screen time that builds a real skill. It's free, with every lesson, song and game included and nothing to buy.
 
 ## Keywords (App Store, 100 characters, comma separated)
 piano,kids,keyboard,music,learn,children,songs,toddler,preschool,notes,lessons,games,colour,toy
 
 ## Price
-- One-time purchase: **US$4.99** (UK £4.99, EU €4.99 if you round the converted prices)
-- No in-app purchases, no subscriptions
+- **Free.** No in-app purchases, no subscriptions, no ads.
 
 ## Category
 - App Store: Education (secondary: Music). Kids category, age band "Ages 6–8" (or "Ages 5 and Under").
