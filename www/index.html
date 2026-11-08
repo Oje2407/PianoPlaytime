@@ -181,6 +181,10 @@ details li{margin:4px 0}
   .bigcard b{font-size:4rem}
 }
 
+.songlevel{display:flex;flex-direction:column;gap:10px}
+.lockmsg{flex-basis:100%;margin:0;color:var(--muted);font-size:.9rem}
+.card.locked{opacity:.55;cursor:default}.card.locked .num{background:var(--muted)}
+.card.nope{animation:shake .3s}
 /* ---------- course ---------- */
 .maphead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .maphead>div:first-child{min-width:0;flex:1 1 280px}
@@ -383,18 +387,25 @@ function release(n){const k=keyEl(n);if(k)k.classList.remove('held');const t=dow
   if(activity&&!activity.locked&&activity.onRelease)activity.onRelease(n,performance.now()-t)}
 
 /* ---------- content ---------- */
-const S=(str)=>str.trim().split(/\s+/).map(t=>{const[n,b,l]=t.split('|');return{n:n+'4',beats:+b||1,lyric:l||''}});
+const S=(str)=>str.trim().split(/\s+/).map(t=>{const[n,b,l]=t.split('|');return{n:/\d/.test(n)?n:n+'4',beats:+b||1,lyric:l||''}});
 const SONGS=[
- {id:'buns',title:'Hot Cross Buns',diff:'Easy',c:'var(--n-E)',notes:'3 notes: C D E',
-  seq:S('E|1|Hot D|1|cross C|2|buns E|1|hot D|1|cross C|2|buns C|.5|one C|.5|a C|.5|pen- C|.5|ny D|.5|two D|.5|a D|.5|pen- D|.5|ny E|1|hot D|1|cross C|2|buns')},
- {id:'mary',title:'Mary Had a Little Lamb',diff:'Easy',c:'var(--n-C)',notes:'4 notes: C D E G',
-  seq:S('E|1|Ma- D|1|ry C|1|had D|1|a E|1|lit- E|1|tle E|2|lamb D|1|lit- D|1|tle D|2|lamb E|1|lit- G|1|tle G|2|lamb E|1|Ma- D|1|ry C|1|had D|1|a E|1|lit- E|1|tle E|1|lamb E|1|its D|1|fleece D|1|was E|1|white D|1|as C|4|snow')},
- {id:'ode',title:'Ode to Joy',diff:'Medium',c:'var(--n-G)',notes:'5 notes: C to G',
-  seq:S('E E F G G F E D C C D E E|1.5 D|.5 D|2 E E F G G F E D C C D E D|1.5 C|.5 C|2')},
- {id:'twinkle',title:'Twinkle Twinkle Little Star',diff:'Medium',c:'var(--n-A)',notes:'6 notes: C to A',
-  seq:S('C|1|Twin- C|1|kle G|1|twin- G|1|kle A|1|lit- A|1|tle G|2|star F|1|how F|1|I E|1|won- E|1|der D|1|what D|1|you C|2|are G|1|Up G|1|a- F|1|bove F|1|the E|1|world E|1|so D|2|high G|1|like G|1|a F|1|dia- F|1|mond E|1|in E|1|the D|2|sky C|1|Twin- C|1|kle G|1|twin- G|1|kle A|1|lit- A|1|tle G|2|star F|1|how F|1|I E|1|won- E|1|der D|1|what D|1|you C|2|are')},
- {id:'jingle',title:'Jingle Bells',diff:'Tricky',c:'var(--n-F)',notes:'5 notes, with a jump',
-  seq:S('E|1|Jin- E|1|gle E|2|bells E|1|jin- E|1|gle E|2|bells E|1|jin- G|1|gle C|1.5|all D|.5|the E|4|way F|1|Oh F|1|what F|1.5|fun F|.5|it F|1|is E|1|to E|1|ride E|.5|in E|.5|a E|1|one D|1|horse D|1|o- E|1|pen D|2|sleigh, G|2|hey!')},
+ {id:"buns",title:"Hot Cross Buns",type:"Nursery rhyme",level:"Starter",bpm:100,seq:S("E|1|Hot D|1|cross C|2|buns, E|1|hot D|1|cross C|2|buns, C|.5|one C|.5|a C|.5|pen- C|.5|ny, D|.5|two D|.5|a D|.5|pen- D|.5|ny, E|1|hot D|1|cross C|2|buns!")},
+ {id:"mary",title:"Mary Had a Little Lamb",type:"Nursery rhyme",level:"Starter",bpm:100,seq:S("E|1|Ma- D|1|ry C|1|had D|1|a E|1|lit- E|1|tle E|2|lamb, D|1|lit- D|1|tle D|2|lamb, E|1|lit- G|1|tle G|2|lamb. E|1|Ma- D|1|ry C|1|had D|1|a E|1|lit- E|1|tle E|1|lamb, E|1|its D|1|fleece D|1|was E|1|white D|1|as C|4|snow.")},
+ {id:"ode",title:"Ode to Joy",type:"Classical",level:"Starter",bpm:100,seq:S("E E F G G F E D C C D E E|1.5 D|.5 D|2 E E F G G F E D C C D E D|1.5 C|.5 C|2")},
+ {id:"lightly",title:"Lightly Row",type:"Folk song",level:"Starter",bpm:100,seq:S("G|1|Light- E|1|ly E|2|row, F|1|light- D|1|ly D|2|row, C|1|o'er D|1|the E|1|glass- F|1|y G|1|waves G|1|we G|2|go; G|1|Smooth- E|1|ly E|2|glide, F|1|smooth- D|1|ly D|2|glide, C|1|on E|1|the G|1|si- G|1|lent C|4|tide. D|1|Let D|1|the D|1|winds D|1|and D|1|wa- E|1|ters F|2|be E|1|min- E|1|gled E|1|with E|1|our E|1|mel- F|1|o- G|2|dy; G|1|Sing E|1|and E|2|float, F|1|sing D|1|and D|2|float, C|1|in E|1|our G|1|lit- G|1|tle C|4|boat.")},
+ {id:"clair",title:"Au Clair de la Lune",type:"French folk song",level:"Starter",bpm:96,seq:S("C|1|Au C|1|clair C|1|de D|1|la E|2|lu- D|2|ne, C|1|mon E|1|a- D|1|mi D|1|Pier- C|4|rot. C|1|Pr\u00ea- C|1|te- C|1|moi D|1|ta E|2|plu- D|2|me C|1|pour E|1|\u00e9- D|1|crire D|1|un C|4|mot.")},
+ {id:"rain",title:"Rain, Rain, Go Away",type:"Nursery rhyme",level:"Starter",bpm:100,seq:S("G|2|Rain, E|2|rain, G|1|go G|1|a- E|2|way, G|1|come G|1|a- E|1|gain A|1|an- G|1|oth- G|1|er E|2|day. G|1|All G|1|the E|1|chil- E|1|dren G|1|want G|1|to E|2|play, G|2|rain, E|2|rain, G|1|go G|1|a- E|2|way.")},
+ {id:"pouring",title:"It's Raining, It's Pouring",type:"Nursery rhyme",level:"Starter",bpm:110,seq:S("G|1|It's G|1|rain- E|1|ing, A|1|it's G|1|pour- E|2|ing, G|1|the G|1|old E|1|man A|1|is G|1|snor- E|2|ing. G|1|He G|1|went E|1|to E|1|bed G|1|and G|1|bumped E|1|his E|2|head, G|1|and G|1|could- E|1|n't A|1|get G|1|up G|1|in E|1|the D|1|morn- C|2|ing.")},
+ {id:"roses",title:"Ring a Ring o' Roses",type:"Action song",level:"Starter",bpm:110,seq:S("G|1|Ring G|1|a- E|1|ring A|1|o' G|1|ros- E|2|es, G|1|a G|1|pock- E|1|et A|1|full G|1|of G|1|pos- E|2|ies. A|1|A- G|1|tish- E|2|oo! A|1|A- G|1|tish- E|2|oo! G|1|We E|1|all D|1|fall C|2|down!")},
+ {id:"jingle",title:"Jingle Bells (chorus)",type:"Festive",level:"Starter",bpm:130,seq:S("E|1|Jin- E|1|gle E|2|bells, E|1|jin- E|1|gle E|2|bells, E|1|jin- G|1|gle C|1.5|all D|.5|the E|4|way. F|1|Oh, F|1|what F|1.5|fun F|.5|it F|1|is E|1|to E|1|ride E|.5|in E|.5|a E|1|one- D|1|horse D|1|o- E|1|pen D|2|sleigh, G|2|hey! E|1|Jin- E|1|gle E|2|bells, E|1|jin- E|1|gle E|2|bells, E|1|jin- G|1|gle C|1.5|all D|.5|the E|4|way. F|1|Oh, F|1|what F|1.5|fun F|.5|it F|1|is E|1|to E|1|ride E|.5|in E|.5|a G|1|one- G|1|horse F|1|o- D|1|pen C|4|sleigh!")},
+ {id:"twinkle",title:"Twinkle Twinkle Little Star",type:"Nursery rhyme",level:"Easy",bpm:100,seq:S("C|1|Twin- C|1|kle G|1|twin- G|1|kle A|1|lit- A|1|tle G|2|star, F|1|how F|1|I E|1|won- E|1|der D|1|what D|1|you C|2|are. G|1|Up G|1|a- F|1|bove F|1|the E|1|world E|1|so D|2|high, G|1|like G|1|a F|1|dia- F|1|mond E|1|in E|1|the D|2|sky. C|1|Twin- C|1|kle G|1|twin- G|1|kle A|1|lit- A|1|tle G|2|star, F|1|how F|1|I E|1|won- E|1|der D|1|what D|1|you C|2|are.")},
+ {id:"baa",title:"Baa Baa Black Sheep",type:"Nursery rhyme",level:"Easy",bpm:100,seq:S("C|1|Baa, C|1|baa, G|1|black G|1|sheep, A|1|have A|1|you A|1|an- A|1|y G|2|wool? F|1|Yes F|1|sir, E|1|yes E|1|sir, D|1|three D|1|bags C|2|full. G|1|One G|1|for G|1|the F|1|mas- F|2|ter, E|1|one E|1|for E|1|the D|2|dame, G|1|one G|1|for G|1|the F|1|lit- F|1|tle F|1|boy E|1|who E|1|lives E|1|down E|1|the D|2|lane. C|1|Baa, C|1|baa, G|1|black G|1|sheep, A|1|have A|1|you A|1|an- A|1|y G|2|wool? F|1|Yes F|1|sir, E|1|yes E|1|sir, D|1|three D|1|bags C|2|full.")},
+ {id:"abc",title:"The Alphabet Song",type:"Learning song",level:"Easy",bpm:100,seq:S("C|1|A C|1|B G|1|C G|1|D A|1|E A|1|F G|2|G, F|1|H F|1|I E|1|J E|1|K D|.5|L D|.5|M D|.5|N D|.5|O C|2|P, G|1|Q G|1|R F|2|S, E|1|T E|1|U D|2|V, G|.5|dou- G|.5|ble- G|1|u, F|2|X, E|1|Y E|1|and D|2|Z. C|1|Now C|1|I G|1|know G|1|my A|1|A A|1|B G|2|Cs, F|1|next F|1|time E|1|won't E|1|you D|1|sing D|1|with C|2|me?")},
+ {id:"oldman",title:"This Old Man",type:"Counting song",level:"Easy",bpm:110,seq:S("G|1|This E|1|old G|2|man, G|1|he E|1|played G|2|one, A|1|he G|1|played F|1|knick- E|1|knack D|1|on E|1|my F|2|thumb, E|.5|with F|.5|a G|1|knick- C|1|knack, C|.5|pad- C|.5|dy- C|1|whack, C|.5|give D|.5|a E|.5|dog F|.5|a G|2|bone, G|1|this D|1|old D|1|man F|.5|came E|.5|roll- D|1|ing C|2|home.")},
+ {id:"london",title:"London Bridge Is Falling Down",type:"Singing game",level:"Easy",bpm:110,seq:S("G|1.5|Lon- A|.5|don G|1|Bridge F|1|is E|1|fall- F|1|ing G|2|down, D|1|fall- E|1|ing F|2|down, E|1|fall- F|1|ing G|2|down. G|1.5|Lon- A|.5|don G|1|Bridge F|1|is E|1|fall- F|1|ing G|2|down, D|2|my G|2|fair E|1|la- C|2|dy.")},
+ {id:"spider",title:"Itsy Bitsy Spider",type:"Action song",level:"Easy",bpm:110,seq:S("G3|1|The C|1|it- C|1|sy C|1|bit- D|1|sy E|1|spi- E|1|der E|1|climbed D|1|up C|1|the D|1|wa- E|1|ter C|2|spout. E|2|Down E|1|came F|1|the G|2|rain G|1|and F|1|washed E|1|the F|1|spi- G|1|der E|2|out. C|2|Out C|1|came D|1|the E|2|sun E|1|and D|1|dried C|1|up D|1|all E|1|the C|2|rain, G3|1|and G3|1|the C|1|it- C|1|sy C|1|bit- D|1|sy E|1|spi- E|1|der E|1|climbed D|1|up C|1|the D|1|spout E|1|a- C|2|gain.")},
+ {id:"farm",title:"Old MacDonald Had a Farm",type:"Animal song",level:"Easy",bpm:120,seq:S("C|1|Old C|1|Mac- C|1|Don- G3|1|ald A3|1|had A3|1|a G3|2|farm, E|1|E- E|1|I- D|1|E- D|1|I- C|2|O! G3|1|And C|1|on C|1|that C|1|farm G3|1|he A3|1|had A3|1|a G3|2|cow, E|1|E- E|1|I- D|1|E- D|1|I- C|2|O! G3|.5|With G3|.5|a C|1|moo C|1|moo C|2|here, G3|.5|and G3|.5|a C|1|moo C|1|moo C|2|there, C|.5|here C|.5|a C|1|moo, C|.5|there C|.5|a C|1|moo, C|.5|ev- C|.5|ery- C|.5|where C|.5|a C|1|moo C|1|moo. C|1|Old C|1|Mac- C|1|Don- G3|1|ald A3|1|had A3|1|a G3|2|farm, E|1|E- E|1|I- D|1|E- D|1|I- C|2|O!")},
+ {id:"dell",title:"The Farmer in the Dell",type:"Singing game",level:"Easy",bpm:120,seq:S("G3|1|The C|1|farm- C|1|er C|1|in C|1|the C|2|dell, D|1|the E|1|farm- E|1|er E|1|in E|1|the E|2|dell, G|2|hi- G|1|ho, A|1|the G|1|der- E|1|ry- C|2|o, D|1|the E|1|farm- E|1|er D|1|in D|1|the C|2|dell.")},
 ];
 
 /* ---------- shared pieces ---------- */
@@ -437,26 +448,35 @@ function show(t){
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
 
+const LEVELS=[{k:'Starter',need:'2.6',unit:2},{k:'Easy',need:'3.5',unit:3}];
+const levelOpen=k=>{const L=LEVELS.find(l=>l.k===k);return !!(store.unlockAll||(L&&isDone(L.need)))};
+/* the keyboard shows just the notes a song needs, at least 5 white keys */
+const songRange=seq=>{const ms=seq.map(x=>midi(x.n));let lo=Math.min(...ms),hi=Math.max(...ms);const white=m=>!nameOf(m).includes('#');
+  while(!white(lo))lo--;while(!white(hi))hi++;const c4=midi('C4');if(lo>c4&&lo-c4<=5)lo=c4;const cnt=()=>{let c=0;for(let m=lo;m<=hi;m++)if(white(m))c++;return c};while(cnt()<5){hi++;while(!white(hi))hi++}
+  return{from:nameOf(lo),to:nameOf(hi)}};
 function viewSongs(){
   stage.innerHTML=`<div class="wrap"><div><p class="eyebrow">Songs</p><h2>Play along with the glowing keys</h2></div>
-  <div class="grid">${SONGS.map((g,i)=>`<button class="card" data-i="${i}" style="--c:${g.c}"><span class="num">♪</span><h3>${g.title}</h3><p>${g.notes}</p><div class="meta"><span class="diff">${g.diff}</span>${rate(store.best['song:'+g.id]||0)}</div></button>`).join('')}</div></div>`;
-  stage.querySelectorAll('.card').forEach(c=>c.onclick=()=>openSong(+c.dataset.i));
+  ${LEVELS.map(L=>{const open=levelOpen(L.k),ss=SONGS.map((g,i)=>({g,i})).filter(x=>x.g.level===L.k);
+    return`<section class="songlevel"><div class="ihead"><h3>${L.k} songs</h3><span class="ucount">${ss.length} songs</span>${open?'':`<p class="lockmsg">Finish Unit ${L.unit} in Learn to unlock these songs.</p>`}</div>
+    <div class="grid">${ss.map(({g,i})=>`<button class="card${open?'':' locked'}" data-i="${i}" style="--c:${col(g.seq[0].n)}" ${open?'':'aria-disabled="true"'}><span class="num">\u266a</span><h3>${g.title}</h3><p>${g.type}</p><div class="meta"><span class="diff">${open?g.level:'Locked'}</span>${rate(store.best['song:'+g.id]||0)}</div></button>`).join('')}</div></section>`}).join('')}
+  <p class="lede">More songs, from Medium to Tricky, are coming in a later update.</p></div>`;
+  stage.querySelectorAll('.card').forEach(c=>c.onclick=()=>{const i=+c.dataset.i;if(levelOpen(SONGS[i].level))openSong(i);else{c.classList.remove('nope');void c.offsetWidth;c.classList.add('nope')}});
 }
 
 function openSong(idx){
-  clearTimers();const g=SONGS[idx],seq=g.seq;
+  clearTimers();const g=SONGS[idx],seq=g.seq;setRange(songRange(seq));
   stage.innerHTML=`<div class="wrap"><button class="back" id="back">‹ All songs</button><div class="panel">
-    <p class="eyebrow">${g.diff} · ${seq.length} notes</p><h2>${g.title}</h2>
+    <p class="eyebrow">${g.level} · ${g.type}</p><h2>${g.title}</h2>
     <div class="bubbles" id="bub"></div><p class="fb" id="fb">Press the glowing key to play the next note.</p>
     <div class="row"><button class="btn ghost" id="listen">Listen first</button><button class="btn ghost" id="restart">Start again</button></div></div></div>`;
   $('#back').onclick=()=>show('songs');
   const bub=$('#bub');
   activity=runner(seq,(ok)=>{bubbles(bub,seq,activity.i);fb(ok?'':'Not quite. Find the glowing key.',ok?'':'no')},()=>{
     activity.locked=true;const m=activity.mistakes,st=m<=2?3:m<=6?2:1;award('song:'+g.id,st);
-    later(()=>celebrate({title:'You played it!',msg:m===0?'Not a single slip. Amazing!':`${m} little slip${m>1?'s':''}. Play again to win more stars.`,stars:st,again:()=>openSong(idx),next:idx+1<SONGS.length?()=>openSong(idx+1):null}),500);
+    later(()=>celebrate({title:'You played it!',msg:m===0?'Not a single slip. Amazing!':`${m} little slip${m>1?'s':''}. Play again to win more stars.`,stars:st,again:()=>openSong(idx),next:SONGS[idx+1]&&levelOpen(SONGS[idx+1].level)?()=>openSong(idx+1):null}),500);
   });
   bubbles(bub,seq,0);
-  $('#listen').onclick=()=>{const sv=activity.i;playBack(seq,bub,{},g.id==='jingle'?140:100,()=>{bubbles(bub,seq,sv);glow()})};
+  $('#listen').onclick=()=>{const sv=activity.i;playBack(seq,bub,{},g.bpm||100,()=>{bubbles(bub,seq,sv);glow()})};
   $('#restart').onclick=()=>openSong(idx);
 }
 
@@ -866,7 +886,7 @@ function openParent(){const ws=weekStats(),doneN=COURSE.filter(L=>isDone(L.id)).
     <h2 id="pt">For grown-ups</h2>
     <dl class="stats"><div><dt>Lessons done</dt><dd>${doneN} of ${COURSE.length}</dd></div><div><dt>Days practised this week</dt><dd>${ws.days}</dd></div><div><dt>Time playing this week</dt><dd>${ws.mins} min</dd></div></dl>
     <p><b>Still learning:</b> ${weak.length?weak.map(l=>`${l} (${ANIMAL[l]||l})`).join(', '):'nothing stands out right now.'}</p>
-    <div class="setting"><span>Unlock every lesson</span><div class="seg" id="segUnlock"><button data-v="0" aria-pressed="${!store.unlockAll}">Off</button><button data-v="1" aria-pressed="${!!store.unlockAll}">On</button></div></div>
+    <div class="setting"><span>Unlock every lesson and song</span><div class="seg" id="segUnlock"><button data-v="0" aria-pressed="${!store.unlockAll}">Off</button><button data-v="1" aria-pressed="${!!store.unlockAll}">On</button></div></div>
     <div class="setting"><span>Rhythm timing check</span><button class="btn ghost" id="recal">${store.calibrated?'Do it again next time':'Not done yet'}</button></div>
     <details><summary>Tips</summary><ul>
       <li>Little and often works best: one 5 to 10 minute lesson a day.</li>
