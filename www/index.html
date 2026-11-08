@@ -96,6 +96,7 @@ h3{font-family:var(--f-display);font-weight:700;font-size:1.2rem;line-height:1.1
 .pip{width:14px;height:14px;border-radius:50%;background:var(--chip)}
 .pip.on{background:var(--good)}
 .pip.miss{background:var(--bad)}
+.pip.cur{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--muted)}
 .lives{font-size:1.2rem;letter-spacing:3px;color:var(--n-C)}
 .status{font-family:var(--f-display);font-weight:800;font-size:1.6rem;margin:0}
 
@@ -445,14 +446,14 @@ function openDetective(){
     if(round>=total)return finish();round++;first=true;let p;do{p='CDEFGAB'[Math.floor(Math.random()*7)]}while(p===target);target=p;
     stage.innerHTML=`<div class="wrap"><button class="back" id="back">‹ All games</button><div class="panel">
       <p class="eyebrow">Note Detective · Round ${round} of ${total}</p>
-      <div class="pips">${Array.from({length:total},(_,k)=>`<span class="pip ${results[k]===true?'on':results[k]===false?'miss':''}"></span>`).join('')}</div>
+      <div class="pips">${Array.from({length:total},(_,k)=>`<span class="pip ${results[k]===true?'on':results[k]===false?'miss':''}${k===round-1?' cur':''}"></span>`).join('')}</div>
       <div class="bigcard${isLight(target)?' lt':''}" style="--c:${col(target)}"><b>${target}</b><span>${ANIMAL[target]}</span></div>
       <p class="say" style="text-align:center;align-self:center">Find <strong>${target}</strong> on the keyboard.</p>
       <p class="fb" id="fb" style="text-align:center"></p><div class="row" style="justify-content:center"><button class="btn ghost" id="hint">Show me</button></div></div></div>`;
     $('#back').onclick=()=>show('games');
     let hint=false;
     activity={locked:false,targets:()=>hint?[target]:[],onNote(n){
-      if(pc(n)===target){activity.locked=true;results[round-1]=first;fb(pick(PRAISE),'ok');later(next,750)}
+      if(pc(n)===target){activity.locked=true;results[round-1]=first;const pp=document.querySelectorAll('.pips .pip')[round-1];if(pp){pp.classList.remove('cur');pp.classList.add(first?'on':'miss')}fb(pick(PRAISE),'ok');later(next,round>=total?1100:750)}
       else{first=false;nope(n);fb(n.includes('#')?'That was a black key. Try a white one!':`That was ${n[0]} for ${ANIMAL[n[0]]}. Try again!`,'no')}}};
     $('#hint').onclick=()=>{hint=true;first=false;glow()};glow();
   }
