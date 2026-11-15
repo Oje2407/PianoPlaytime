@@ -27,6 +27,9 @@ GAMES THAT TEACH
 • Note Detective: a letter appears, find its key.
 • Copy Cat: listen to a tune and play it back. It grows a little longer each time.
 
+PLAY ON A REAL KEYBOARD (Android)
+Plug in a digital piano or keyboard with a USB cable, or connect by Bluetooth on Android 12 and newer. Every key your child presses lights up on screen and counts in lessons and songs.
+
 FREE PLAY
 Make up your own music with piano or music-box sounds.
 
@@ -73,6 +76,7 @@ Answer "None" to every content question. Choose the Kids category with your age 
 - Does your app collect or share any of the required user data types? **No**
 - Is all user data encrypted in transit? Not applicable (no data leaves the device)
 - Account deletion: not applicable (no accounts)
+- The app asks for "Nearby devices" (Bluetooth) only to connect a piano keyboard. It is declared "never for location" and no data is collected, so the answer stays **No**.
 
 ### Google Play: Target audience and content
 - Target ages: 5 and under, 6–8 (and 9–12 if you like)

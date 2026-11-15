@@ -191,6 +191,10 @@ body.nokeys .dock{display:none}
 .settings h3{font-size:1.15rem}
 .setting input{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0;width:min(14rem,100%)}
 .note{margin:0;color:var(--muted);font-size:.88rem}
+.toast{position:fixed;left:50%;top:max(12px,env(safe-area-inset-top));transform:translate(-50%,-150%);background:var(--ink);color:var(--surface);padding:10px 18px;border-radius:999px;font-weight:700;z-index:60;transition:transform .25s;max-width:calc(100vw - 32px);text-align:center;pointer-events:none}
+.toast.on{transform:translate(-50%,0)}
+.midistate{font-weight:700}.midistate.ok{color:var(--good,#1f8a4c)}
+.btlist{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
 .tips{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .policy{display:flex;flex-direction:column;gap:8px;padding-top:8px;max-width:65ch}
 .policy p{margin:0}
@@ -412,7 +416,7 @@ let rz;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(wan
 
 let activity=null;
 const downAt={};let lastPress=0;
-function press(n,info={}){lastPress=performance.now();downAt[n]=lastPress;tone(n);flash(n);const k=keyEl(n);if(k)k.classList.add('held');
+function press(n,info={}){lastPress=performance.now();downAt[n]=lastPress;if(!(info.midi&&store.midiSound===false))tone(n);flash(n);const k=keyEl(n);if(k)k.classList.add('held');
   if(typeof trackPractice==='function')trackPractice();if(activity&&!activity.locked)activity.onNote(n,info)}
 function release(n){const k=keyEl(n);if(k)k.classList.remove('held');const t=downAt[n];delete downAt[n];if(t==null)return;
   if(activity&&!activity.locked&&activity.onRelease)activity.onRelease(n,performance.now()-t)}
@@ -1087,6 +1091,7 @@ function viewSettings(){
     <div class="setting"><span>Sound</span>${seg('segSnd',[['piano','Piano'],['bells','Music box']],store.sound)}</div>
     <div class="setting"><span>Letters on the keys</span>${seg('segLab',[['1','Show'],['0','Hide']],store.labels?'1':'0')}</div>
     <div class="setting"><span>Keyboard size</span><div class="seg" id="segOct"></div></div></section>
+  ${MIDI.P?midiPanelHTML():''}
   <section class="panel"><h3>Progress</h3>
     <dl class="stats"><div><dt>Lessons done</dt><dd>${doneN} of ${COURSE.length}</dd></div><div><dt>Days practised this week</dt><dd>${ws.days}</dd></div><div><dt>Time playing this week</dt><dd>${ws.mins} min</dd></div></dl>
     <p><b>Still learning:</b> ${weak.length?weak.map(l=>`${l} (${ANIMAL[l]||l})`).join(', '):'nothing stands out right now.'}</p>
@@ -1122,6 +1127,7 @@ function viewSettings(){
   $('#resetNo').onclick=()=>{$('#resetConfirm').hidden=true};
   $('#resetYes').onclick=()=>{Object.assign(store,{course:{done:{}},best:{},stickers:[],miss:{},log:{},graduated:null,slow31:false});save();updateStars();viewSettings()};
   const cb=$('#cert');if(cb)cb.onclick=openCert;
+  if(MIDI.P)midiPanelWire();
   activity={locked:false,targets:()=>[],onNote(){}};
 }
 const PRIVACY_TEXT=`<p><b>Last updated: 15 November 2026</b></p>
@@ -1129,10 +1135,57 @@ const PRIVACY_TEXT=`<p><b>Last updated: 15 November 2026</b></p>
 <p><b>What we collect.</b> Nothing. Little Keys does not collect, store, share or sell any personal information from children or adults. There are no accounts, no sign-in, no photos, no microphone use and no location use.</p>
 <p><b>Advertising and tracking.</b> Little Keys has no advertising, no analytics, no tracking and no third-party code that collects data.</p>
 <p><b>Internet access.</b> The app works fully offline and does not send anything over the internet. The only link out of the app is to this privacy policy, inside the grown-ups' settings.</p>
+<p><b>Real piano keyboards.</b> A grown-up can connect a digital piano or keyboard by USB cable or Bluetooth. The app reads only which keys are pressed, so it can light them on the screen. On Android, the Bluetooth permission is used only to find and connect the keyboard, never to work out location. Nothing about the keyboard is saved or sent.</p>
 <p><b>Saved on the device.</b> Stars, lesson progress and settings are saved only on the device, inside the app. If a grown-up chooses to add the child's age or a first name for the certificate, these are also saved only on the device. We cannot see any of this. Deleting the app, or choosing Reset progress, removes it.</p>
 <p><b>Purchases.</b> Little Keys is free and has no in-app purchases.</p>
 <p><b>Children's privacy.</b> Because we collect no personal information, the app is designed to meet the requirements of the UK Age Appropriate Design Code, UK GDPR, the US Children's Online Privacy Protection Act (COPPA), the Apple App Store Kids category and the Google Play Families policy.</p>
 <p><b>Changes.</b> If this ever changes, we will update this policy and the date above before releasing the new version.</p>`;
+
+
+/* ---------- real piano keyboards (MIDI over USB or Bluetooth, Android app) ---------- */
+/* each key pressed on a real keyboard goes through press() and release(), exactly like a tap */
+const MIDI={P:null,bt:false,names:[],found:[],scanning:false,last:'',held:{},offAt:-1e9};
+let toastT;function toast(t,ms=2600){let el=$('#toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';el.setAttribute('role','status');document.body.appendChild(el)}
+  el.textContent=t;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),ms)}
+/* a note outside the keys on screen moves to the nearest key with the same letter */
+function midiFit(m){const n=nameOf(m);if(keyEl(n))return n;let best=null,bd=1e9;
+  keysEl.querySelectorAll('.key').forEach(k=>{const d=midi(k.dataset.note)-m;if(d%12===0&&Math.abs(d)<bd){bd=Math.abs(d);best=k.dataset.note}});return best}
+function midiNote(e){
+  if(e.on){MIDI.last=nameOf(e.note);const l=$('#midiLast');if(l)l.textContent=`You played ${MIDI.last[0]}${MIDI.last.includes('#')?' sharp':''} (${MIDI.last})`;
+    const n=midiFit(e.note);
+    if(!n){if(performance.now()-MIDI.offAt>4000){MIDI.offAt=performance.now();toast('That key isn’t on the screen right now')}return}
+    if(MIDI.held[e.note])release(MIDI.held[e.note]);MIDI.held[e.note]=n;press(n,{midi:true,multi:Object.keys(MIDI.held).length>1})}
+  else{const n=MIDI.held[e.note];if(n){delete MIDI.held[e.note];release(n)}}}
+function midiStatus(st){const before=MIDI.names.length,names=(st&&st.connected)||[];MIDI.names=names;if(st&&'bluetooth' in st)MIDI.bt=!!st.bluetooth;
+  if(names.length>before)toast('Keyboard connected: '+names[names.length-1]);else if(names.length<before)toast(names.length?'One keyboard was unplugged':'Keyboard unplugged');
+  if(names.length){const m=$('#btMsg');if(m)m.textContent=''}
+  midiRender()}
+function midiRender(){const s=$('#midiState');if(!s)return;s.textContent=MIDI.names.length?'Connected: '+MIDI.names.join(', '):'No keyboard connected';s.classList.toggle('ok',!!MIDI.names.length);
+  const b=$('#btScan');if(b){b.disabled=MIDI.scanning;b.textContent=MIDI.scanning?'Searching…':'Find a Bluetooth keyboard'}
+  const ul=$('#btList');if(ul)ul.innerHTML=MIDI.found.map(d=>`<li><button class="btn ghost" data-id="${esc(d.id)}">${esc(d.name)}</button></li>`).join('')}
+function midiPanelHTML(){return `<section class="panel" id="midiPanel"><h3>Real piano keyboard</h3>
+    <p><span class="midistate" id="midiState"></span></p>
+    <p class="note">Plug a digital piano or keyboard into this device with a USB cable (a USB-B to USB-C cable fits most). It connects by itself. Keys played on it light up here and count in lessons and songs.</p>
+    ${MIDI.bt?`<div class="setting"><span>Bluetooth keyboard</span><button class="btn ghost" id="btScan">Find a Bluetooth keyboard</button></div>
+    <ul class="btlist" id="btList"></ul><p class="note" id="btMsg" aria-live="polite"></p>`:''}
+    <div class="setting"><span>App sound for keyboard notes</span>${`<div class="seg" id="segMidiSnd">${[['1','On'],['0','Off']].map(([v,l])=>`<button data-v="${v}" aria-pressed="${(store.midiSound===false?'0':'1')===v}">${l}</button>`).join('')}</div>`}</div>
+    <p class="note">Turn this off if the keyboard has its own speakers, so each note isn't heard twice.</p>
+    <div class="setting"><span>Test</span><span id="midiLast">Press any key on the keyboard</span></div>
+    <p class="note">The screen shows fewer keys than a real keyboard. A note played outside them moves to the nearest key with the same letter.</p></section>`}
+function midiPanelWire(){midiRender();
+  const sg=$('#segMidiSnd');sg.onclick=e=>{const b=e.target.closest('button');if(!b)return;store.midiSound=b.dataset.v==='1';save();sg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};
+  const b=$('#btScan');if(!b)return;const msg=t=>{const m=$('#btMsg');if(m)m.textContent=t};
+  b.onclick=()=>{MIDI.found=[];MIDI.scanning=true;midiRender();msg('Looking for keyboards. Make sure the keyboard is switched on.');
+    MIDI.P.scanBluetooth().catch(err=>{MIDI.scanning=false;midiRender();const c=err&&err.code;
+      msg(c==='off'?'Bluetooth is turned off. Turn it on in the device settings, then try again.':c==='denied'?'Little Keys needs permission to find nearby devices. Allow it in the device settings under Apps, Little Keys, Permissions.':(err&&err.message)||'Bluetooth search didn’t start.')})};
+  $('#btList').onclick=e=>{const d=e.target.closest('button');if(!d)return;msg('Connecting…');MIDI.P.connectBluetooth({id:d.dataset.id}).catch(err=>msg((err&&err.message)||'Couldn’t connect.'))};
+  MIDI._msg=msg}
+function midiInit(){const P=window.Capacitor&&window.Capacitor.Plugins&&window.Capacitor.Plugins.PianoMidi;if(!P)return;
+  try{P.addListener('note',midiNote);P.addListener('status',midiStatus);
+    P.addListener('found',d=>{if(!MIDI.found.some(x=>x.id===d.id)){MIDI.found.push(d);midiRender()}});
+    P.addListener('scanDone',()=>{MIDI.scanning=false;midiRender();if(!MIDI.found.length&&MIDI._msg&&$('#btMsg'))MIDI._msg('No keyboard found. Check it is switched on and its Bluetooth light is flashing, then try again.')});
+    P.addListener('bluetoothFailed',()=>{if(MIDI._msg&&$('#btMsg'))MIDI._msg('Couldn’t connect. Switch the keyboard off and on, then try again.')});
+    P.start().then(st=>{if(!st||!st.supported)return;MIDI.P=P;MIDI.bt=!!st.bluetooth;MIDI.names=st.connected||[];if(MIDI.names.length)toast('Keyboard connected: '+MIDI.names[0]);if(tab==='settings'&&gateOpen)viewSettings()}).catch(()=>{})}catch(e){}}
 
 /* ---------- phone app extras ---------- */
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){} /* play sound even with the iPhone silent switch on */
@@ -1147,7 +1200,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&ac)ac.susp
   try{P.StatusBar&&P.StatusBar.hide()}catch(e){}
   try{P.SplashScreen&&P.SplashScreen.hide()}catch(e){}
 })();
-applyAge();updateStars();buildKeys();show('learn');
+applyAge();updateStars();buildKeys();show('learn');midiInit();
 </script>
 </body>
 </html>
