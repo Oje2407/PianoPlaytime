@@ -20,8 +20,12 @@ function createWindow() {
   win.loadFile(path.join(__dirname, 'www', 'index.html'));
   win.once('ready-to-show', () => win.show());
 
-  // Children's app: never open other websites or windows.
-  win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  // Children's app: no other windows. The only link out (the privacy policy, behind the
+  // grown-ups' check) opens in the computer's normal browser.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('https://oje2407.github.io/')) shell.openExternal(url);
+    return { action: 'deny' };
+  });
   win.webContents.on('will-navigate', (e) => e.preventDefault());
 
   // F11 (Windows) toggles full screen, Esc leaves it.

@@ -185,6 +185,25 @@ details li{margin:4px 0}
 .lockmsg{flex-basis:100%;margin:0;color:var(--muted);font-size:.9rem}
 .card.locked{opacity:.55;cursor:default}.card.locked .num{background:var(--muted)}
 .card.nope{animation:shake .3s}
+/* ---------- settings ---------- */
+body.nokeys .dock{display:none}
+.settings .panel{gap:10px}
+.settings h3{font-size:1.15rem}
+.setting input{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);min-width:0;width:min(14rem,100%)}
+.note{margin:0;color:var(--muted);font-size:.88rem}
+.tips{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.policy{display:flex;flex-direction:column;gap:8px;padding-top:8px;max-width:65ch}
+.policy p{margin:0}
+.about{display:grid;grid-template-columns:repeat(auto-fit,minmax(9rem,1fr));gap:10px;margin:0}
+.about div{background:var(--chip);border-radius:12px;padding:10px 12px}.about dt{font-size:.78rem;color:var(--muted);font-weight:700}.about dd{margin:0;font-weight:700}
+.confirm{background:color-mix(in srgb,var(--bad) 12%,var(--surface));border:1px solid var(--bad);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.confirm p{margin:0}
+.btn.danger{background:var(--bad);color:#fff}
+.gate{align-items:flex-start}
+.sum{font-family:var(--f-display);font-weight:800;font-size:2rem;margin:0}
+.gatein{font:inherit;font-size:1.4rem;width:6rem;padding:8px 12px;border-radius:12px;border:2px solid var(--line);background:var(--surface);color:var(--ink);text-align:center}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+html.young .lbody .say,html.young .panel>.say{font-size:clamp(1.3rem,3.8vw,1.6rem)}
 /* ---------- course ---------- */
 .zgap{background:var(--lid);border-radius:0 0 6px 6px}
 .keys.plain .white .lab{display:none}
@@ -225,10 +244,6 @@ details li{margin:4px 0}
 .stone .rate{font-size:.8rem;letter-spacing:1px}
 .stone.nope{animation:shake .3s}
 @keyframes bounce{50%{translate:0 -6px}}
-.grown{position:relative;overflow:hidden;align-self:center;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:10px 20px;font-weight:700;color:var(--muted);touch-action:none;user-select:none;-webkit-user-select:none}
-.grown .gfill{position:absolute;inset:0 auto 0 0;width:0;background:color-mix(in srgb,var(--n-G) 30%,transparent)}
-.grown.holding .gfill{width:100%;transition:width 3s linear}
-.grown .glab{position:relative}
 .lesson{gap:10px}
 .steps5{display:flex;gap:6px;list-style:none;padding:0;margin:0;flex-wrap:wrap}
 .steps5 li{font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:999px;background:var(--chip);color:var(--muted)}
@@ -291,6 +306,7 @@ details li{margin:4px 0}
       <button role="tab" data-tab="songs" aria-selected="false">Songs</button>
       <button role="tab" data-tab="games" aria-selected="false" hidden>Games</button><!-- Games tab hidden for now; remove "hidden" to bring it back -->
       <button role="tab" data-tab="play" aria-selected="false">Free play</button>
+      <button role="tab" data-tab="settings" aria-selected="false">Settings</button>
     </nav>
   </header>
   <main class="stage" id="stage"></main>
@@ -461,7 +477,8 @@ let tab='learn';
 function show(t){
   tab=t;clearTimers();activity=null;modal.hidden=true;if(keyRange)setRange(null);setNoLabels(false);
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
-  ({learn:viewLearn,songs:viewSongs,games:viewGames,play:viewPlay})[t]();glow();stage.scrollTop=0;
+  if(t!=='settings')gateOpen=false;document.body.classList.toggle('nokeys',t==='settings');
+  ({learn:viewLearn,songs:viewSongs,games:viewGames,play:viewPlay,settings:viewSettings})[t]();glow();stage.scrollTop=0;
 }
 document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
 
@@ -558,14 +575,8 @@ function viewPlay(){
   stage.innerHTML=`<div class="wrap"><div><p class="eyebrow">Free play</p><h2>Make up your own music</h2></div>
    <div class="panel"><div class="now"><div class="bigcard" id="nowCard" style="--c:var(--chip);color:var(--muted)"><b>♪</b><span>Play!</span></div>
      <div><h3 id="nowName">Press any key</h3><p class="lede" id="nowSub">Try sliding your finger along the keys, or play only the black keys. They always sound good together.</p></div></div>
-     <div class="setting"><span>Letters on the keys</span><div class="seg" id="segLab"><button aria-pressed="${store.labels}" data-v="1">Show</button><button aria-pressed="${!store.labels}" data-v="0">Hide</button></div></div>
-     <div class="setting"><span>Keyboard size</span><div class="seg" id="segOct"></div></div>
-     <div class="setting"><span>Sound</span><div class="seg" id="segSnd"><button aria-pressed="${store.sound==='piano'}" data-v="piano">Piano</button><button aria-pressed="${store.sound==='bells'}" data-v="bells">Music box</button></div></div>
+     <p class="note">Sound, letters on the keys and keyboard size are in Settings.</p>
    </div></div>`;
-  $('#segLab').onclick=e=>{const b=e.target.closest('button');if(!b)return;store.labels=b.dataset.v==='1';save();keysEl.classList.toggle('nolabels',!store.labels);$('#segLab').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};
-  renderSizeSeg();
-  $('#segOct').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;store.octaves=b.dataset.v;save();buildKeys();renderSizeSeg()};
-  $('#segSnd').onclick=e=>{const b=e.target.closest('button');if(!b)return;store.sound=b.dataset.v;save();$('#segSnd').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));tone('G4')};
   activity={locked:false,targets:()=>[],onNote(n){
     const card=$('#nowCard'),sharp=n.includes('#'),l=n[0];
     card.className='bigcard'+(!sharp&&isLight(l)?' lt':'');card.style.cssText=`--c:${col(n)}`;
@@ -993,10 +1004,9 @@ function viewLearn(){
       return`<section class="island" style="--c:${u.c}"><div class="ihead"><span class="eyebrow">Unit ${u.n} · ${u.stage}</span><h3>${u.name}</h3><span class="ucount">${dn} of ${ls.length} done</span></div>
         <div class="stones">${ls.map(({L,k})=>{const d=isDone(L.id),open=unlocked(k),st=d?'done':k===nextIdx?'next':open?'open':'locked';
           return`<button class="stone ${st}" data-k="${k}" ${open?'':'aria-disabled="true"'} aria-label="Lesson ${L.id}, ${L.title}${d?', done':open?'':', locked'}"><span class="disc">${L.id}</span><span class="t">${L.title}</span>${d?rate(store.course.done[L.id]):''}</button>`}).join('')}</div></section>`}).join('')}
-    <button class="grown" id="grown"><span class="gfill"></span><span class="glab">Grown-ups: press and hold</span></button>
   </div>`;
   stage.querySelectorAll('.stone').forEach(s=>s.onclick=()=>{const k=+s.dataset.k;if(unlocked(k))openCourseLesson(k);else{s.classList.remove('nope');void s.offsetWidth;s.classList.add('nope')}});
-  holdToOpen($('#grown'),openParent);const cb=$('#cert');if(cb)cb.onclick=openCert;
+  const cb=$('#cert');if(cb)cb.onclick=openCert;
   const nx=stage.querySelector('.stone.next');if(nx&&nx.getBoundingClientRect().top>stage.clientHeight)nx.scrollIntoView({block:'center'});
 }
 
@@ -1044,34 +1054,85 @@ function openCourseLesson(idx){
 
 /* ---------- graduation certificate ---------- */
 function certHTML(){return`<div class="cert"><p class="eyebrow">Certificate</p><h3>Little Keys Graduate</h3>
-  <p>Awarded to a brilliant young pianist for finishing all ${COURSE.length} lessons of the Little Keys course: from finding middle C to reading notes and playing with both hands.</p>
+  <p>Awarded to ${store.childName?`<b>${esc(store.childName)}</b>`:'a brilliant young pianist'} for finishing all ${COURSE.length} lessons of the Little Keys course: from finding middle C to reading notes and playing with both hands.</p>
   <p class="certdate">${store.graduated||''}</p><div class="certstars">★ ★ ★</div></div>`}
 function openCert(){modal.innerHTML=`<div class="panel" role="dialog" aria-modal="true" aria-label="Certificate">${certHTML()}<div class="row" style="justify-content:center"><button class="btn" id="cclose">Close</button></div></div>`;
   modal.hidden=false;$('#cclose').onclick=()=>{modal.hidden=true;modal.innerHTML=''};$('#cclose').focus()}
 
-/* ---------- grown-ups area (press and hold for 3 seconds) ---------- */
-function holdToOpen(btn,fn){let t=null;const go=e=>{if(e&&e.type==='keydown'&&(e.repeat||!['Enter',' '].includes(e.key)))return;e&&e.preventDefault();btn.classList.add('holding');t=setTimeout(()=>{btn.classList.remove('holding');fn()},3000)};
-  const stop=()=>{clearTimeout(t);btn.classList.remove('holding')};
-  btn.addEventListener('pointerdown',go);['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,stop));
-  btn.addEventListener('keydown',go);btn.addEventListener('keyup',stop);btn.onclick=e=>e.preventDefault()}
-function openParent(){const ws=weekStats(),doneN=COURSE.filter(L=>isDone(L.id)).length;
+/* ---------- Settings (for grown-ups, behind a simple adult check) ---------- */
+const APP_VERSION='1.0';
+const CONTACT_EMAIL=''; /* add the support email shown in the app and the privacy policy */
+const PRIVACY_URL='https://oje2407.github.io/pianoplaytime/privacy.html';
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function applyAge(){document.documentElement.classList.toggle('young',['4','5'].includes(store.age))}
+let gateOpen=false;
+function viewSettings(){
+  if(!gateOpen){const a=6+Math.floor(Math.random()*4),b=6+Math.floor(Math.random()*4);
+    stage.innerHTML=`<div class="wrap"><div><p class="eyebrow">Settings</p><h2>For grown-ups</h2></div>
+      <div class="panel gate"><p class="say">To open settings, answer this question.</p><p class="sum">What is ${a} × ${b}?</p>
+      <form class="row" id="gateForm" autocomplete="off"><label class="vh" for="gateIn">Answer</label><input id="gateIn" inputmode="numeric" pattern="[0-9]*" maxlength="3" class="gatein">
+      <button class="btn" type="submit">Open settings</button></form><p class="fb" id="fb"></p></div></div>`;
+    $('#gateForm').onsubmit=e=>{e.preventDefault();if(+$('#gateIn').value===a*b){gateOpen=true;viewSettings()}else{fb('That isn’t right. Here is a new question.','no');later(viewSettings,1400)}};
+    activity={locked:false,targets:()=>[],onNote(){}};return}
+  const ws=weekStats(),doneN=COURSE.filter(L=>isDone(L.id)).length;
   const weak=Object.entries(store.miss).filter(([,v])=>v>=2).sort((a,b)=>b[1]-a[1]).map(([k])=>k);
-  modal.innerHTML=`<div class="panel parent" role="dialog" aria-modal="true" aria-labelledby="pt">
-    <h2 id="pt">For grown-ups</h2>
+  const seg=(id,opts,cur)=>`<div class="seg" id="${id}">${opts.map(([v,l])=>`<button data-v="${v}" aria-pressed="${String(cur)===v}">${l}</button>`).join('')}</div>`;
+  stage.innerHTML=`<div class="wrap settings"><div><p class="eyebrow">Settings</p><h2>For grown-ups</h2></div>
+  <section class="panel"><h3>Your child</h3>
+    <div class="setting"><span>Age</span>${seg('segAge',[['4','4'],['5','5'],['6','6'],['7','7'],['8','8+']],store.age||'')}</div>
+    <p class="note">Ages 4 and 5 get larger instruction text. The age is saved only on this device.</p>
+    <div class="setting"><label for="childName">First name for the certificate</label><input id="childName" maxlength="20" autocomplete="off" value="${esc(store.childName||'')}" placeholder="Optional"></div>
+    <p class="note">Optional. Shown only on the graduation certificate and saved only on this device.</p></section>
+  <section class="panel"><h3>Sound and keyboard</h3>
+    <div class="setting"><span>Sound</span>${seg('segSnd',[['piano','Piano'],['bells','Music box']],store.sound)}</div>
+    <div class="setting"><span>Letters on the keys</span>${seg('segLab',[['1','Show'],['0','Hide']],store.labels?'1':'0')}</div>
+    <div class="setting"><span>Keyboard size</span><div class="seg" id="segOct"></div></div></section>
+  <section class="panel"><h3>Progress</h3>
     <dl class="stats"><div><dt>Lessons done</dt><dd>${doneN} of ${COURSE.length}</dd></div><div><dt>Days practised this week</dt><dd>${ws.days}</dd></div><div><dt>Time playing this week</dt><dd>${ws.mins} min</dd></div></dl>
     <p><b>Still learning:</b> ${weak.length?weak.map(l=>`${l} (${ANIMAL[l]||l})`).join(', '):'nothing stands out right now.'}</p>
-    <div class="setting"><span>Unlock every lesson and song</span><div class="seg" id="segUnlock"><button data-v="0" aria-pressed="${!store.unlockAll}">Off</button><button data-v="1" aria-pressed="${!!store.unlockAll}">On</button></div></div>
+    ${store.graduated?'<div class="row"><button class="btn ghost" id="cert">See the certificate</button></div>':''}
+    <div class="setting"><span>Unlock every lesson and song</span>${seg('segUnlock',[['0','Off'],['1','On']],store.unlockAll?'1':'0')}</div>
     <div class="setting"><span>Rhythm timing check</span><button class="btn ghost" id="recal">${store.calibrated?'Do it again next time':'Not done yet'}</button></div>
-    <details><summary>Tips</summary><ul>
-      <li>Little and often works best: one 5 to 10 minute lesson a day.</li>
-      <li>Let your child repeat lessons they enjoy. Repeats earn more stars.</li>
-      <li>On a real piano or keyboard: sit tall, level with middle C, with curved fingers as if holding a bubble.</li>
-      <li>Later, on a real keyboard, the C major scale uses the thumb tucking under after E. The app can't check fingers, so this is one for you to show.</li></ul></details>
-    <div class="row"><button class="btn" id="pclose">Close</button></div></div>`;
-  modal.hidden=false;
-  $('#segUnlock').onclick=e=>{const b=e.target.closest('button');if(!b)return;store.unlockAll=b.dataset.v==='1';save();$('#segUnlock').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))};
+    <div class="setting"><span>Start again from the beginning</span><button class="btn ghost" id="reset">Reset progress</button></div>
+    <div class="confirm" id="resetConfirm" hidden><p>This clears all stars, stickers, lessons and the certificate on this device. It can't be undone.</p>
+      <div class="row"><button class="btn danger" id="resetYes">Yes, reset everything</button><button class="btn ghost" id="resetNo">Cancel</button></div></div></section>
+  <section class="panel"><h3>Tips for grown-ups</h3><ul class="tips">
+    <li>Little and often works best: one 5 to 10 minute lesson a day.</li>
+    <li>Let your child repeat lessons they enjoy. Repeats earn more stars.</li>
+    <li>Lessons in Unit 6 use both hands: on a phone, turn it sideways.</li>
+    <li>On a real piano or keyboard, sit tall, level with middle C, with curved fingers as if holding a bubble. For the C major scale, the thumb tucks under after E.</li>
+    <li>To keep your child inside Little Keys: on iPhone and iPad use Guided Access (Settings, Accessibility); on Android use App pinning (Settings, Security); on a computer use Screen Time (Mac) or Microsoft Family Safety (Windows).</li></ul></section>
+  <section class="panel"><h3>Privacy</h3>
+    <ul class="tips"><li>No ads, no in-app purchases and no accounts.</li><li>Nothing is collected or sent anywhere. The app works fully offline.</li><li>Stars, progress and these settings are saved only on this device.</li></ul>
+    <details><summary>Read the full privacy policy</summary><div class="policy">${PRIVACY_TEXT}</div></details>
+    <p class="note">The same policy is online at <a href="${PRIVACY_URL}" target="_blank" rel="noopener">${PRIVACY_URL.replace('https://','')}</a>.</p></section>
+  <section class="panel"><h3>About Little Keys</h3>
+    <dl class="about"><div><dt>Version</dt><dd>${APP_VERSION}</dd></div><div><dt>Course</dt><dd>${COURSE.length} lessons in ${UNITS.length} units</dd></div><div><dt>Songs</dt><dd>${SONGS.length}, all traditional or out of copyright</dd></div>${CONTACT_EMAIL?`<div><dt>Contact</dt><dd>${esc(CONTACT_EMAIL)}</dd></div>`:''}</dl>
+    <p class="note">Fonts: Baloo 2 and Atkinson Hyperlegible, used under the SIL Open Font License.</p></section>
+  </div>`;
+  const pick1=(id,fn)=>{const el=$('#'+id);el.onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;fn(b.dataset.v);el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b))}};
+  pick1('segAge',v=>{store.age=v;save();applyAge()});
+  pick1('segSnd',v=>{store.sound=v;save();tone('G4')});
+  pick1('segLab',v=>{store.labels=v==='1';save();keysEl.classList.toggle('nolabels',!store.labels)});
+  pick1('segUnlock',v=>{store.unlockAll=v==='1';save()});
+  renderSizeSeg();$('#segOct').onclick=e=>{const b=e.target.closest('button');if(!b||b.disabled)return;store.octaves=b.dataset.v;save();buildKeys();renderSizeSeg()};
+  $('#childName').oninput=e=>{store.childName=e.target.value.trim().slice(0,20);save()};
   $('#recal').onclick=e=>{store.calibrated=false;save();e.target.textContent='Will run at the next rhythm lesson'};
-  $('#pclose').onclick=()=>{modal.hidden=true;modal.innerHTML='';show('learn')};$('#pclose').focus()}
+  $('#reset').onclick=()=>{$('#resetConfirm').hidden=false;$('#resetNo').focus()};
+  $('#resetNo').onclick=()=>{$('#resetConfirm').hidden=true};
+  $('#resetYes').onclick=()=>{Object.assign(store,{course:{done:{}},best:{},stickers:[],miss:{},log:{},graduated:null,slow31:false});save();updateStars();viewSettings()};
+  const cb=$('#cert');if(cb)cb.onclick=openCert;
+  activity={locked:false,targets:()=>[],onNote(){}};
+}
+const PRIVACY_TEXT=`<p><b>Last updated: 15 November 2026</b></p>
+<p>Little Keys is a piano learning app for children. It is built to collect nothing.</p>
+<p><b>What we collect.</b> Nothing. Little Keys does not collect, store, share or sell any personal information from children or adults. There are no accounts, no sign-in, no photos, no microphone use and no location use.</p>
+<p><b>Advertising and tracking.</b> Little Keys has no advertising, no analytics, no tracking and no third-party code that collects data.</p>
+<p><b>Internet access.</b> The app works fully offline and does not send anything over the internet. The only link out of the app is to this privacy policy, inside the grown-ups' settings.</p>
+<p><b>Saved on the device.</b> Stars, lesson progress and settings are saved only on the device, inside the app. If a grown-up chooses to add the child's age or a first name for the certificate, these are also saved only on the device. We cannot see any of this. Deleting the app, or choosing Reset progress, removes it.</p>
+<p><b>Purchases.</b> Little Keys is free and has no in-app purchases.</p>
+<p><b>Children's privacy.</b> Because we collect no personal information, the app is designed to meet the requirements of the UK Age Appropriate Design Code, UK GDPR, the US Children's Online Privacy Protection Act (COPPA), the Apple App Store Kids category and the Google Play Families policy.</p>
+<p><b>Changes.</b> If this ever changes, we will update this policy and the date above before releasing the new version.</p>`;
 
 /* ---------- phone app extras ---------- */
 try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){} /* play sound even with the iPhone silent switch on */
@@ -1086,7 +1147,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&ac)ac.susp
   try{P.StatusBar&&P.StatusBar.hide()}catch(e){}
   try{P.SplashScreen&&P.SplashScreen.hide()}catch(e){}
 })();
-updateStars();buildKeys();show('learn');
+applyAge();updateStars();buildKeys();show('learn');
 </script>
 </body>
 </html>
