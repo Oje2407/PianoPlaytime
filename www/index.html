@@ -186,6 +186,19 @@ details li{margin:4px 0}
 .card.locked{opacity:.55;cursor:default}.card.locked .num{background:var(--muted)}
 .card.nope{animation:shake .3s}
 /* ---------- course ---------- */
+.zgap{background:var(--lid);border-radius:0 0 6px 6px}
+.keys.plain .white .lab{display:none}
+.keys.zones .white .mid{display:none}
+.stavewrap{display:flex;justify-content:center}
+.stave{height:min(7.5rem,18vh);width:auto;max-width:100%;align-self:center;overflow:visible}
+.stave .sl{stroke:var(--ink);stroke-width:1.4}
+.stave .stem{stroke-width:1.8}
+.stave .clef{font-size:62px;fill:var(--ink);font-family:"Noto Music","Bravura","Segoe UI Symbol","Apple Symbols","DejaVu Sans",serif}
+.stave .ring{fill:color-mix(in srgb,var(--n-G) 18%,transparent);stroke:var(--n-G);stroke-width:2.5}
+.bub.chord .dot{width:auto;min-width:2.65rem;padding:0 .6rem;border-radius:999px;font-size:1rem}
+.tip{margin:0;padding:10px 14px;border-radius:12px;background:var(--chip);font-weight:700;font-size:.92rem}
+.cert{border:3px double var(--n-E);border-radius:18px;padding:18px 20px;text-align:center;display:flex;flex-direction:column;gap:6px;background:color-mix(in srgb,var(--n-E) 10%,var(--surface))}
+.cert h3{font-size:1.6rem}.cert p{margin:0}.certdate{font-weight:700;color:var(--muted)}.certstars{color:var(--n-E);font-size:1.6rem;letter-spacing:6px}
 .maphead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
 .maphead>div:first-child{min-width:0;flex:1 1 280px}
 .stickers{display:flex;gap:10px;flex-wrap:wrap}
@@ -340,21 +353,23 @@ function maxOctaves(){return Math.max(1,Math.min(4,Math.floor((keysEl.clientWidt
 function autoOctaves(){const w=keysEl.clientWidth||window.innerWidth;return w<640?1:w<1100?2:w<1600?3:4}
 function wantOctaves(){const pick=store.octaves==='auto'||!store.octaves?autoOctaves():+store.octaves;return Math.min(pick,maxOctaves())}
 const START={1:4,2:4,3:3,4:2}; /* keep middle C on screen and near the middle */
-let octaves=0,lowOct=4,keyRange=null;
-function setRange(r){keyRange=r;buildKeys()}
+let octaves=0,lowOct=4,keyRange=null,forceNoLabels=false;
+function setRange(r){if(JSON.stringify(r)===JSON.stringify(keyRange))return;keyRange=r;buildKeys()}
+function setNoLabels(v){forceNoLabels=!!v;keysEl.classList.toggle('nolabels',!store.labels||forceNoLabels);keysEl.classList.toggle('plain',forceNoLabels)}
 function buildKeys(){
   const notes=[];
-  if(keyRange){for(let m=midi(keyRange.from);m<=midi(keyRange.to);m++)notes.push(nameOf(m));lowOct=+keyRange.from.slice(-1);octaves=1;compOct=lowOct}
+  if(keyRange){const zs=keyRange.zones||[keyRange];zs.forEach((z,zi)=>{if(zi)notes.push('|');for(let m=midi(z.from);m<=midi(z.to);m++)notes.push(nameOf(m))});lowOct=+zs[0].from.slice(-1);octaves=zs.length;compOct=lowOct}
   else{octaves=wantOctaves();lowOct=START[octaves];for(let o=lowOct;o<lowOct+octaves;o++)PCS.forEach(p=>notes.push(p+o));notes.push('C'+(lowOct+octaves))}
   keysEl.classList.toggle('zoomed',!!keyRange);
   compOct=Math.min(Math.max(compOct,lowOct),lowOct+octaves-1);updateHint();
-  const whites=notes.filter(n=>!n.includes('#')),w=100/whites.length;
+  const GAP=.6,nw=notes.filter(n=>n!=='|'&&!n.includes('#')).length,ng=notes.filter(n=>n==='|').length,w=100/(nw+ng*GAP);
   let html='',wi=0;
   notes.forEach(n=>{
+    if(n==='|'){html+=`<div class="zgap" style="flex:0 0 ${w*GAP}%" aria-hidden="true"></div>`;wi+=GAP;return}
     if(!n.includes('#')){html+=`<div class="key white${isLight(n[0])?' lt':''}" data-note="${n}" style="--nc:${col(n)}" role="button" aria-label="${n}"><span class="lab">${n[0]}</span>${n==='C4'?'<span class="mid">middle C</span>':''}</div>`;wi++}
     else html+=`<div class="key black" data-note="${n}" style="--nc:var(--sharp);left:calc(${wi*w}% - ${w*0.31}%);width:${w*0.62}%" role="button" aria-label="${n}"></div>`;
   });
-  keysEl.innerHTML=html;keysEl.classList.toggle('nolabels',!store.labels);glow();
+  keysEl.innerHTML=html;keysEl.classList.toggle('nolabels',!store.labels||forceNoLabels);keysEl.classList.toggle('zones',!!(keyRange&&keyRange.zones));keysEl.classList.toggle('plain',forceNoLabels);glow();
 }
 const keyEl=n=>keysEl.querySelector(`[data-note="${n}"]`);
 function flash(n,ms=220){const k=keyEl(n);if(!k)return;k.classList.add('down');setTimeout(()=>k.classList.remove('down'),ms)}
@@ -409,8 +424,10 @@ const SONGS=[
 ];
 
 /* ---------- shared pieces ---------- */
-function bubbles(el,seq,i,{fingers=false}={}){
-  el.innerHTML=seq.map((s,k)=>{const l=s.n[0];return `<div class="bub${isLight(l)?' lt':''}${k<i?' done':''}${k===i?' cur':''}" style="--c:${col(s.n)}"><span class="dot">${l}</span>${s.lyric?`<small>${s.lyric}</small>`:''}${fingers&&FINGER[l]?`<span class="fing">finger ${FINGER[l]}</span>`:''}</div>`}).join('');
+function bubbles(el,seq,i,{fingers=false,lh=false,hands=false}={}){
+  el.innerHTML=seq.map((s,k)=>{const l=s.n[0],sh=s.n.includes('#'),lab=sh?l+'\u266f':l,f=fingers&&FINGER[l]&&!sh?(lh?6-FINGER[l]:FINGER[l]):0,
+    sub=s.n2?'both hands':hands?(+s.n.slice(-1)<4?'left':'right'):f?`finger ${f}`:'';
+    return `<div class="bub${isLight(l)&&!sh?' lt':''}${s.n2?' chord':''}${k<i?' done':''}${k===i?' cur':''}" style="--c:${col(s.n)}"><span class="dot">${s.n2?lab+'+'+s.n2[0]:lab}</span>${s.lyric?`<small>${s.lyric}</small>`:''}${sub?`<span class="fing">${sub}</span>`:''}</div>`}).join('');
   const cur=el.querySelector('.cur');if(cur)el.scrollTo({left:cur.offsetLeft-el.clientWidth/2+cur.offsetWidth/2,behavior:'smooth'});
 }
 function runner(seq,onStep,onDone){
@@ -442,7 +459,7 @@ function celebrate({title,msg,stars,again,next}){
 /* ---------- views ---------- */
 let tab='learn';
 function show(t){
-  tab=t;clearTimers();activity=null;modal.hidden=true;if(keyRange)setRange(null);
+  tab=t;clearTimers();activity=null;modal.hidden=true;if(keyRange)setRange(null);setNoLabels(false);
   document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));
   ({learn:viewLearn,songs:viewSongs,games:viewGames,play:viewPlay})[t]();glow();stage.scrollTop=0;
 }
@@ -601,11 +618,12 @@ function handSVG(nums,clickable=true,left=false){
     ${F.map(([f,d])=>`<g class="finger" ${clickable?`data-v="f${f}" role="button" tabindex="0" aria-label="Finger ${f}"`:''}><path d="${d}"/>${nums?`<text x="${tip[f][0]}" y="${tip[f][1]}">${f}</text>`:''}</g>`).join('')}</svg>`}
 
 /* ---------- rounds: one small task each, with help after 2 misses ---------- */
-function runRounds(body,rounds,{mode='play',tries=1,helpAfter=2}={},done){
+function runRounds(body,rounds,{mode='play',tries=1,helpAfter=2,baseRange,baseNoLabels=false}={},done){
   let i=0,res=[],slips=0,misses=0,roundMisses=0,helped=false,finished=false,answered=false;
   const ctl={mode,fb,slip(){slips++},result:k=>handle(k,null),helped:()=>helped};
   function draw(){
     const r=rounds[i];window.__round=r;answered=false;misses=0;roundMisses=0;helped=mode==='try';r.reset&&r.reset();
+    if(r.range!==undefined)setRange(r.range);else if(baseRange!==undefined)setRange(baseRange);setNoLabels(r.noLabels!==undefined?r.noLabels:baseNoLabels);
     body.innerHTML=`${rounds.length>1?`<div class="pips">${rounds.map((_,k)=>`<span class="pip ${k<i?(res[k]?'on':'miss'):''}${k===i?' cur':''}"></span>`).join('')}</div>`:''}
       <p class="say">${r.say}</p>${r.view?r.view():''}
       ${r.buttons?`<div class="choices">${r.buttons.map(b=>`<button class="choice" data-v="${b.v}" style="--c:${b.c}">${b.label}</button>`).join('')}</div>`:''}
@@ -662,13 +680,77 @@ function handRound(f,nums,left=false){return{say:`Tap finger <b>${f}</b>${left?'
 function detectRound(L){return{say:`Find <b>${L}</b> on the keyboard.`,view:()=>`<div class="bigcard${isLight(L)?' lt':''}" style="--c:${col(L)}"><b>${L}</b><span>${ANIMAL[L]}</span></div>`,
   targets:()=>[L],missKey:L,check(inp){if(!inp.note)return null;return pc(inp.note)===L?'ok':'no'},
   wrongMsg:inp=>inp.note.includes('#')?'That was a black key. Try a white one!':`That was ${inp.note[0]} for ${ANIMAL[inp.note[0]]}. Try again!`}}
-function patternRound(str,o={}){const seq=str.split(' ').map(n=>({n:/\d/.test(n)?n:n+'4'}));let j=0,sl=0,bub=null;const fo={fingers:!!o.fingers};
-  return{say:o.say||(o.glow?'Play the glowing keys in order.':'Play these notes in order.'),view:()=>'<div class="bubbles" id="bub"></div>',
-    after(b){bub=b.querySelector('#bub');bubbles(bub,seq,0,fo)},reset(){j=0;sl=0},alwaysGlow:!!o.glow,targets:()=>j<seq.length?[seq[j].n]:[],selfJudged:true,
-    replay:true,autoIntro:!!o.listen,intro(){const st=650;seq.forEach((s,k)=>later(()=>{tone(s.n);flash(s.n,420);bub&&bubbles(bub,seq,k,fo)},k*st));later(()=>bub&&bubbles(bub,seq,j,fo),seq.length*st);return seq.length*st},
-    refresh(){bubbles(bub,seq,j,fo)},
-    check(inp){if(!inp.note||j>=seq.length)return null;if(inp.note===seq[j].n){j++;if(j<seq.length)return'step';return sl<=(o.maxSlips??2)?'ok':(o.repeat?'retry':'fail')}sl++;return'no'},
-    wrongMsg:()=>`Look for ${seq[j].n[0]}.`,failMsg:'Good try! That one had a few slips.'}}
+const noteLabel=n=>n[0]+(n.includes('#')?'\u266f':'');
+const withRange=(r,range)=>(r.range=range,r);
+function patternRound(str,o={}){const fx=x=>/\d/.test(x)?x:x+'4';
+  const seq=str.split(' ').map(t=>{const [a,b]=t.split('+');return b?{n:fx(a),n2:fx(b)}:{n:fx(a)}});
+  let j=0,sl=0,bub=null,got={};const fo={fingers:!!o.fingers,lh:!!o.lh,hands:!!o.hands};
+  const paint=k=>{if(!bub)return;if(o.stave)bub.innerHTML=staveSVG(seq.map(s=>s.n),{cur:k,colour:!!o.colour});else bubbles(bub,seq,k,fo)};
+  return{kind:'pattern',seq,say:o.say||(o.glow?'Play the glowing keys in order.':o.stave?'Read the notes and play them in order.':'Play these notes in order.'),
+    view:()=>o.stave?'<div class="stavewrap" id="bub"></div>':'<div class="bubbles" id="bub"></div>',
+    after(b){bub=b.querySelector('#bub');paint(0)},reset(){j=0;sl=0;got={}},alwaysGlow:!!o.glow,
+    targets:()=>j<seq.length?(seq[j].n2?[seq[j].n,seq[j].n2]:[seq[j].n]):[],selfJudged:true,
+    replay:!o.stave,autoIntro:!!o.listen,
+    intro(){const st=650;seq.forEach((s,k)=>later(()=>{tone(s.n);flash(s.n,420);if(s.n2){tone(s.n2);flash(s.n2,420)}paint(k)},k*st));later(()=>paint(j),seq.length*st);return seq.length*st},
+    refresh(){paint(j)},
+    check(inp){if(!inp.note||j>=seq.length)return null;const s=seq[j];
+      if(s.n2){if(inp.note!==s.n&&inp.note!==s.n2){sl++;return'no'}const now=performance.now();got[inp.note]=now;const other=inp.note===s.n?s.n2:s.n;
+        if(!((got[other]&&now-got[other]<500)||downAt[other]!=null))return null;got={}}
+      else if(inp.note!==s.n){sl++;return'no'}
+      j++;if(j<seq.length)return'step';return sl<=(o.maxSlips??2)?'ok':(o.repeat?'retry':'fail')},
+    wrongMsg:()=>{const s=seq[j];return s.n2?`Play both ${s.n[0]}s at the same time, one with each hand.`:`Look for ${noteLabel(s.n)}.`},failMsg:'Good try! That one had a few slips.'}}
+/* left hand holds a low note while the right hand plays */
+function holdPlayRound(str,o={}){const base=o.base||'C3';const seq=str.split(' ').map(x=>({n:/\d/.test(x)?x:x+'4'}));let j=0,sl=0,bub=null,c=null;
+  return{kind:'holdplay',base,seq,say:o.say||'Press and hold <b>low C</b> with your left hand. Keep holding it while your right hand plays.',usesRelease:true,
+    view:()=>'<div class="bubbles" id="bub"></div>',after(b,ctl){c=ctl;bub=b.querySelector('#bub');bubbles(bub,seq,0)},reset(){j=0;sl=0},
+    alwaysGlow:true,selfJudged:true,
+    targets:()=>downAt[base]==null?[base]:(j<seq.length&&(o.glow||(c&&c.helped()))?[seq[j].n]:[]),
+    refresh(){bubbles(bub,seq,j)},
+    check(inp){if(inp.release!=null){if(inp.note===base&&j>0&&j<seq.length){sl++;return'no'}return null}
+      if(!inp.note)return null;if(inp.note===base)return'step';
+      if(downAt[base]==null||inp.note!==seq[j].n){sl++;return'no'}
+      j++;if(j<seq.length)return'step';return sl<=(o.maxSlips??2)?'ok':'fail'},
+    wrongMsg:inp=>inp.release!=null?'Keep holding low C until the end!':downAt[base]==null?'First press and hold low C with your left hand.':`Look for ${noteLabel(seq[j].n)}.`,
+    failMsg:'Good try! Keep that low C held all the way.'}}
+
+/* ---------- the music stave ---------- */
+const SPOS=n=>+n.slice(-1)*7+'CDEFGAB'.indexOf(n[0])-30; /* bottom line (E4) is 0 */
+function staveSVG(notes,{colour=false,cur=-1}={}){const gx=46,x0=74,W=Math.max(210,x0+notes.length*gx+16),bot=88;
+  let s=`<svg class="stave" viewBox="0 0 ${W} 118" role="img" aria-label="${notes.length} note${notes.length>1?'s':''} on a music stave">`;
+  for(let k=0;k<5;k++)s+=`<line class="sl" x1="4" x2="${W-4}" y1="${bot-k*12}" y2="${bot-k*12}"/>`;
+  s+=`<text class="clef" x="6" y="${bot+11}">\u{1D11E}</text>`;
+  notes.forEach((n,k)=>{const p=SPOS(n),x=x0+k*gx,y=bot-p*6,up=p<4;
+    for(let q=-2;q>=p;q-=2)s+=`<line class="sl" x1="${x-15}" x2="${x+15}" y1="${bot-q*6}" y2="${bot-q*6}"/>`;
+    for(let q=10;q<=p;q+=2)s+=`<line class="sl" x1="${x-15}" x2="${x+15}" y1="${bot-q*6}" y2="${bot-q*6}"/>`;
+    const fill=colour?col(n):k<cur?'var(--muted)':'var(--ink)';
+    if(k===cur)s+=`<circle class="ring" cx="${x}" cy="${y}" r="16"/>`;
+    s+=`<line class="stem" x1="${up?x+8.5:x-8.5}" x2="${up?x+8.5:x-8.5}" y1="${y}" y2="${up?y-34:y+34}" style="stroke:${fill}"/>`;
+    s+=`<ellipse cx="${x}" cy="${y}" rx="9.5" ry="6.8" transform="rotate(-20 ${x} ${y})" style="fill:${fill}"/>`});
+  return s+'</svg>'}
+function lineSpaceRound(){const n=rnd(['E4','F4','G4','A4','B4','C5','D5','E5']),ans=SPOS(n)%2===0?'line':'space';
+  return{say:'Is this note on a <b>line</b> or in a <b>space</b>?',view:()=>staveSVG([n],{cur:0}),
+    buttons:[{v:'line',label:'Line',c:'var(--n-A)'},{v:'space',label:'Space',c:'var(--n-G)'}],hintSel:`[data-v="${ans}"]`,
+    check(inp){if(!inp.button)return null;return inp.button===ans?'ok':'no'},
+    wrongMsg:()=>ans==='line'?'Look closely: a line goes right through the middle of the note.':'Look closely: the note sits between two lines.'}}
+function staveNoteRound(list,o={}){const L=rnd(list),n=L+'4';let shown=false;
+  return{say:o.colour?'Find this note on the keyboard.':'Read the note, then find it on the keyboard.',
+    view:()=>`${staveSVG([n],{colour:!!o.colour})}${o.reveal?'<div class="row" style="justify-content:center"><button class="btn ghost" data-v="reveal" id="rev">Show the letter</button></div>':''}`,
+    targets:()=>[L],missKey:L,
+    check(inp,ctl){if(inp.button==='reveal'){if(!shown){shown=true;ctl.slip();const b=document.getElementById('rev');if(b)b.textContent=`It's ${L} for ${ANIMAL[L]}`}return null}
+      if(!inp.note)return null;return pc(inp.note)===L?'ok':'no'},
+    wrongMsg:inp=>`That was ${inp.note.includes('#')?'a black key':inp.note[0]}. Look at where the note sits.`}}
+function stepSkipRound(){const ns=['C4','D4','E4','F4','G4'],isStep=Math.random()<.5;let a,b;
+  do{a=rnd(ns);b=ns[ns.indexOf(a)+(isStep?1:2)*(Math.random()<.5?1:-1)]}while(!b);
+  const ans=isStep?'step':'skip',seq=[a,b];let phase=0,j=0;
+  const self={say:'Is this a <b>step</b> or a <b>skip</b>?',view:()=>`<div class="stavewrap" id="stv">${staveSVG(seq)}</div>`,
+    buttons:[{v:'step',label:'Step',c:'var(--n-G)'},{v:'skip',label:'Skip',c:'var(--n-D)'}],hintSel:`[data-v="${ans}"]`,
+    reset(){phase=0;j=0;self.hintSel=`[data-v="${ans}"]`},targets:()=>phase===1&&j<2?[seq[j]]:[],
+    check(inp){if(phase===0){if(!inp.button)return null;if(inp.button!==ans)return'no';phase=1;self.hintSel=null;
+        const ch=document.querySelector('#lbody .choices');if(ch)ch.hidden=true;const sy=document.querySelector('#lbody .say');if(sy)sy.innerHTML=`Yes, a ${ans}! Now play the two notes.`;
+        document.getElementById('stv').innerHTML=staveSVG(seq,{cur:0});return'step'}
+      if(!inp.note)return null;if(pc(inp.note)!==seq[j][0])return'no';j++;document.getElementById('stv').innerHTML=staveSVG(seq,{cur:j});return j<2?'step':'ok'},
+    wrongMsg:inp=>inp&&inp.button?'Look again: does it move to the very next line or space, or jump over one?':`Play ${seq[j][0]} next.`};
+  return self}
 function sdRound(kind){const ns=['C4','D4','E4','F4','G4'];let a=rnd(ns),b,ans;
   if(kind==='sd'){const same=Math.random()<.45;b=same?a:rnd(ns.filter(x=>x!==a));ans=same?'same':'diff'}else{do{b=rnd(ns)}while(b===a);ans=midi(b)>midi(a)?'up':'down'}
   return{say:kind==='sd'?'Listen to two notes. Are they the <b>same</b> or <b>different</b>?':'Listen to two notes. Does the second one go <b>higher</b> or <b>lower</b>?',
@@ -710,7 +792,7 @@ function holdRound(beats,tempo){const T=beats*60000/tempo,lo=.8*T,hi=T+Math.max(
       if(!inp.note||holding)return null;holding=inp.note;const t0=performance.now(),a=audio();if(a)for(let k=1;k<=beats;k++)click(a.currentTime+k*60/tempo,false);
       const tick=()=>{if(!holding||!fill)return;fill.style.width=Math.min(100,(performance.now()-t0)/span*100)+'%';raf=requestAnimationFrame(tick)};tick();return null},
     wrongMsg:()=>'Hold until the bar reaches the green part, then let go.'}}
-function restRound(pat,tempo,isTry){const p=pat.split(' ');let exp=[],state=[],on=false;
+function restRound(pat,tempo,isTry,failKind='retry'){const p=pat.split(' ');let exp=[],state=[],on=false;
   return{say:'Tap on <b>ta</b>. Stay quiet on <b>shh</b>. The drum counts you in first.',
     view:()=>`<div class="rhythm">${p.map((x,k)=>`<span class="rb ${x}" data-k="${k}">${x==='ta'?'ta':'shh'}</span>`).join('')}</div><div class="drum small" id="drum">♩</div>${startBtn}`,
     after(b,ctl){b.querySelector('#go').onclick=e=>{e.target.closest('.row').hidden=true;const drum=b.querySelector('#drum');
@@ -719,7 +801,7 @@ function restRound(pat,tempo,isTry){const p=pat.split(' ');let exp=[],state=[],o
       exp=t.slice(4);state=p.map(()=>null);on=true;
       later(()=>{on=false;b.querySelectorAll('.rb').forEach(x=>x.classList.remove('now'));let err=0;
         p.forEach((x,k)=>{const el=b.querySelector(`.rb[data-k="${k}"]`);if(x==='ta'&&!state[k]){err++;el.classList.add('bad')}if(x==='shh'&&state[k]){err++;el.classList.add('bad')}if(!el.classList.contains('bad'))el.classList.add('good')});
-        later(()=>ctl.result(isTry||err<=1?'ok':'retry'),900)},exp[exp.length-1]-performance.now()+700)}},
+        later(()=>ctl.result(isTry||err<=1?'ok':failKind),900)},exp[exp.length-1]-performance.now()+700)}},
     check(inp){if(!inp.note||!on)return null;let best=-1,bd=1e9;exp.forEach((t,k)=>{const d=Math.abs(lastPress-t);if(d<bd){bd=d;best=k}});if(best>=0&&bd<260)state[best]=true;return null},
     retryMsg:'Almost! Let\'s try that rhythm again.',selfJudged:true}}
 function copyRound(pat,tempo,isTry){const spb=60000/tempo,seq=pat.map(([l,b])=>({n:l+'4',beats:b,lyric:isTry?LEN[b]:''}));let j=0,err=0,bub=null,holding=null;
@@ -735,13 +817,16 @@ function copyRound(pat,tempo,isTry){const spb=60000/tempo,seq=pat.map(([l,b])=>(
       if(!inp.note||holding)return null;if(inp.note!==s.n){err++;return'no'}holding=inp.note;return null},
     wrongMsg:()=>`Listen again. The next note is ${seq[j].n[0]}.`,failMsg:'Good try! Here comes the next one.'}}
 
-/* ---------- the 16 lessons of Units 1 to 3 ---------- */
+/* ---------- the 35 lessons of Units 1 to 7 ---------- */
 const UNITS=[
   {n:1,name:'Meet the piano',stage:'Explore',c:'var(--n-C)',sticker:'Twin Finder'},
   {n:2,name:'Right hand home',stage:'Explore',c:'var(--n-G)',sticker:'Five Finger Star'},
   {n:3,name:'Feel the beat',stage:'Play',c:'var(--n-F)',sticker:'Beat Keeper'},
-  {n:4,name:'Hello, left hand',soon:true},{n:5,name:'Reading notes',soon:true},{n:6,name:'Two hands',soon:true},{n:7,name:'New places',soon:true}];
-const Z5={from:'C4',to:'G4'};
+  {n:4,name:'Hello, left hand',stage:'Play',c:'var(--n-A)',sticker:'Left Hand Leader'},
+  {n:5,name:'Reading notes',stage:'Read',c:'var(--n-B)',sticker:'Note Reader'},
+  {n:6,name:'Two hands',stage:'Read',c:'var(--n-D)',sticker:'Two-Hand Hero'},
+  {n:7,name:'New places',stage:'Read',c:'var(--n-C)',sticker:'Graduate'}];
+const Z5={from:'C4',to:'G4'},ZL={from:'C3',to:'G3'},ZONES={zones:[{from:'C3',to:'G3'},{from:'C4',to:'G4'}]};
 const R=(n,f)=>Array.from({length:n},(_,k)=>f(k));
 const CARDS=ls=>`<div class="cards">${ls.map(l=>`<div class="bigcard mini${isLight(l)?' lt':''}" style="--c:${col(l)}"><b>${l}</b><span>${ANIMAL[l]}</span></div>`).join('')}</div>`;
 const COURSE=[
@@ -803,6 +888,81 @@ const COURSE=[
     meet:'Show time! Listen to a short tune, then play it back with the right notes and the right lengths.',
     try:()=>[copyRound([['C',1],['D',1],['E',2]],84,true),copyRound([['E',2],['D',1],['C',1]],84,true)],
     play:()=>takeN([[['C',1],['D',1],['E',2]],[['E',1],['D',1],['C',2]],[['C',2],['E',2]],[['G',1],['G',1],['E',2]],[['C',1],['E',1],['G',2]],[['E',2],['D',1],['C',1]],[['D',1],['E',1],['F',2]],[['G',2],['F',1],['E',1]]],6).map(p=>copyRound(p,84,false)),need:4,pass:'4 of 6 copied'},
+
+  {id:'4.1',unit:4,title:'Mirror hands',idea:'Left thumb is also 1',
+    meet:'Your left hand has numbers too. It is a mirror of your right: the thumb is still <b>1</b> and the little finger is <b>5</b>.',meetView:()=>handSVG(true,false,true),
+    try:()=>shuffle([1,2,3,4,5]).map(f=>handRound(f,true,true)),play:()=>shuffle([1,2,3,4,5]).map(f=>handRound(f,false,true)),tries:2,need:5,pass:'5 of 5 right'},
+  {id:'4.2',unit:4,title:'Left hand home',idea:'Little finger (5) on the lower C',zoom:ZL,
+    meet:'The keyboard has moved lower. Put your left little finger (5) on this low C, then 4 on D, 3 on E, 2 on F and your thumb (1) on G.',meetView:()=>handSVG(true,false,true),meetGlow:['C3','D3','E3','F3','G3'],
+    try:()=>[patternRound('G3 F3 E3 D3 C3',{glow:true,fingers:true,lh:true})],
+    play:()=>[patternRound('G3 F3 E3 D3 C3',{fingers:true,lh:true,maxSlips:2,say:'Walk down, from your thumb to finger 5.'}),patternRound('C3 D3 E3 F3 G3',{fingers:true,lh:true,maxSlips:2,say:'Now walk back up, from 5 to your thumb.'})],need:2,pass:'Both ways, 2 slips or fewer'},
+  {id:'4.3',unit:4,title:'Walking down',idea:'G down to C',zoom:ZL,
+    meet:'Walking down means each note is one step lower than the last. Listen to each pattern, then play it with your left hand.',
+    demoLabel:'Hear a walk down',demo(){['G3','F3','E3','D3','C3'].forEach((n,k)=>later(()=>{tone(n);flash(n,380)},k*500))},
+    try:()=>[patternRound('G3 F3 E3',{glow:true}),patternRound('E3 D3 C3',{glow:true})],
+    play:()=>takeN(['G3 F3 E3 D3 C3','G3 E3 C3','F3 E3 D3 C3','E3 D3 C3 D3 E3','G3 F3 E3 F3 G3'],3).map(p=>patternRound(p,{listen:true,maxSlips:2,repeat:true})),need:0,pass:'3 patterns'},
+  {id:'4.4',unit:4,title:'Left hand beats',idea:'Rhythm in the left hand',zoom:ZL,
+    meet:'Your left hand can keep the beat too. Tap the low keys on <b>ta</b> and stay quiet on <b>shh</b>.',meetView:()=>'<div class="rhythm"><span class="rb ta">ta</span><span class="rb ta">ta</span><span class="rb shh">shh</span><span class="rb ta">ta</span></div>',
+    try:()=>[restRound('ta ta shh ta',66,true)],play:()=>takeN(['ta shh ta shh','shh ta ta ta','ta ta ta shh','ta shh shh ta','ta ta shh ta'],4).map(p=>restRound(p,66,false,'fail')),need:3,pass:'3 of 4 patterns'},
+  {id:'4.5',unit:4,title:'Show time: Taking turns',idea:'Call and answer',show:true,zoom:ZONES,
+    meet:'Show time! Now there are two keyboards: low notes for your left hand and higher notes for your right. The right hand plays a little tune, then the left hand answers.',
+    try:()=>[patternRound('C4 D4 E4 E3 D3 C3',{glow:true,hands:true})],
+    play:()=>takeN(['C4 D4 E4 E3 D3 C3','E4 F4 G4 G3 F3 E3','G4 E4 C4 C3 E3 G3','C4 E4 C3 E3','D4 E4 F4 F3 E3 D3','G4 F4 E4 E3 F3 G3'],5).map(p=>patternRound(p,{hands:true,listen:true,maxSlips:1})),need:4,pass:'4 of 5 turns'},
+
+  {id:'5.1',unit:5,title:'Lines and spaces',idea:'The five lines of the stave',zoom:Z5,
+    meet:'Music is written on five lines called the <b>stave</b>. Every note sits either on a line or in a space between two lines.',meetView:()=>staveSVG(['E4','F4','G4','A4'],{colour:true}),
+    try:()=>R(3,lineSpaceRound),play:()=>R(5,lineSpaceRound),need:4,pass:'4 of 5 right'},
+  {id:'5.2',unit:5,title:'Middle C on its own line',idea:'C, D and E on the stave',zoom:Z5,
+    meet:'Middle C sits on its own little line below the stave. D hangs just under the bottom line, and E sits on the bottom line.',meetView:()=>staveSVG(['C4','D4','E4'],{colour:true}),meetGlow:['C4','D4','E4'],
+    try:()=>['C','D','E'].map(l=>staveNoteRound([l],{colour:true})),play:()=>R(5,()=>staveNoteRound(['C','D','E'],{colour:true})),need:4,pass:'4 of 5 right'},
+  {id:'5.3',unit:5,title:'Steps and skips',idea:'Next door or jump one',zoom:Z5,
+    meet:'A <b>step</b> goes to the very next line or space. A <b>skip</b> jumps over one, from a line to the next line, or a space to the next space.',meetView:()=>staveSVG(['C4','D4','E4','G4'],{colour:true}),
+    try:()=>R(2,stepSkipRound),play:()=>R(5,stepSkipRound),need:4,pass:'4 of 5 right'},
+  {id:'5.4',unit:5,title:'F and G join in',idea:'C to G on the stave; colours start to fade',zoom:Z5,noLabels:true,
+    meet:'F sits in the first space and G on the second line. The notes and keys lose their colours now, so you read them yourself. Stuck? Tap "Show the letter".',meetView:()=>staveSVG(['C4','D4','E4','F4','G4']),
+    try:()=>['F','G'].map(l=>staveNoteRound([l],{reveal:true})),play:()=>R(5,()=>staveNoteRound(['C','D','E','F','G'],{reveal:true})),need:4,pass:'4 of 5 right'},
+  {id:'5.5',unit:5,title:'Show time: Read and play',idea:'Playing from notes',show:true,zoom:Z5,noLabels:true,
+    meet:'Show time! Read short patterns from the stave and play them. No letters this time: you are reading music!',
+    try:()=>[patternRound('C D E',{stave:true,glow:true})],
+    play:()=>takeN(['C D E D C','E F G F E','C E G','G F E D C','D E F E D','C D E F G','E D C D E'],5).map(p=>patternRound(p,{stave:true,maxSlips:2})),need:4,pass:'4 of 5 patterns'},
+
+  {id:'6.1',unit:6,title:'Quick turns',idea:'Switching hands fast',zoom:ZONES,two:true,
+    meet:'Both hands get their own keys now: left hand on the low keys, right hand on the high keys. Take turns, one note each.',
+    try:()=>[patternRound('C3 C4 D3 D4',{glow:true,hands:true})],
+    play:()=>takeN(['C3 C4 D3 D4 E3 E4','E4 E3 D4 D3 C4 C3','C3 E4 C3 E4 G3 G4','G3 G4 F3 F4 E3 E4'],3).map(p=>patternRound(p,{hands:true,maxSlips:2,repeat:true})),need:0,pass:'3 patterns'},
+  {id:'6.2',unit:6,title:'Hold and play',idea:'Left hand holds a C while the right hand plays',zoom:ZONES,two:true,
+    meet:'Press low C with your left hand and keep holding it. While it rings, your right hand plays a short pattern.',meetGlow:['C3'],
+    try:()=>[holdPlayRound('C D E',{glow:true})],play:()=>takeN(['C D E D C','E F G','G E C','D E F E D'],3).map(p=>holdPlayRound(p,{maxSlips:2})),need:2,pass:'2 of 3 patterns'},
+  {id:'6.3',unit:6,title:'Side by side',idea:'Both hands play at the same moment',zoom:ZONES,two:true,
+    meet:'Now press a key with each hand at exactly the same time: both Cs, then both Ds, all the way up to G and back.',meetGlow:['C3','C4'],
+    try:()=>[patternRound('C3+C4 D3+D4 E3+E4',{glow:true})],
+    play:()=>R(3,()=>patternRound('C3+C4 D3+D4 E3+E4 F3+F4 G3+G4 F3+F4 E3+E4 D3+D4 C3+C4',{maxSlips:2})),need:2,pass:'2 of 3 runs'},
+  {id:'6.4',unit:6,title:'Show time: Two-hand patterns',idea:'Mixing turns, holds and together',show:true,zoom:ZONES,two:true,
+    meet:'Show time! Three patterns mix everything: taking turns, holding low C, and both hands together.',
+    try:()=>[patternRound('C3+C4 E3+E4',{glow:true})],
+    play:()=>[patternRound('C3 C4 E3 E4 G3 G4',{hands:true,maxSlips:2}),holdPlayRound('C D E F G',{maxSlips:2}),patternRound('C3+C4 E3+E4 G3+G4 E3+E4 C3+C4',{maxSlips:2})],need:2,pass:'2 of 3 patterns'},
+
+  {id:'7.1',unit:7,title:'Ant and Bear',idea:'A and B',
+    meet:'Next to G live <b>A</b> for Ant and <b>B</b> for Bear. After B, the next C starts the pattern again.',meetView:()=>CARDS(['A','B']),meetGlow:['A','B'],
+    try:()=>[detectRound('A'),detectRound('B')],play:()=>R(5,k=>detectRound(k<3?rnd(['A','B']):rnd(['C','D','E','F','G','A','B']))),need:4,pass:'4 of 5 right'},
+  {id:'7.2',unit:7,title:'Move house',idea:'G position, G to D',zoom:{from:'G4',to:'D5'},
+    meet:'Your hand can move to a new home! The keyboard slides along. Thumb on G, then 2 on A, 3 on B, 4 on C and 5 on D.',meetGlow:['G4','A4','B4','C5','D5'],
+    try:()=>[patternRound('G A B C5 D5',{glow:true})],
+    play:()=>takeN(['G A B C5 D5','D5 C5 B A G','G B D5 B G','A B C5 B A','G A B A G'],3).map(p=>patternRound(p,{listen:true,maxSlips:2,repeat:true})),need:0,pass:'3 patterns'},
+  {id:'7.3',unit:7,title:'Black keys have names',idea:'F sharp',zoom:{from:'E4',to:'B4'},
+    meet:'Black keys have names too. The black key just to the right of F is called <b>F sharp</b>, written F\u266f.',meetGlow:['F#4'],
+    demoLabel:'Hear F, then F sharp',demo(){tone('F4');flash('F4',400);later(()=>{tone('F#4');flash('F#4',400)},700)},
+    try:()=>[patternRound('F#',{glow:true,say:'Tap F sharp.'}),patternRound('E F# G',{glow:true})],
+    play:()=>takeN(['G F# G','E F# G A','A G F# G','G F# E F# G'],3).map(p=>patternRound(p,{listen:true,maxSlips:2,repeat:true})),need:0,pass:'3 patterns'},
+  {id:'7.4',unit:7,title:'Climb the ladder',idea:'C major scale, all 8 notes',zoom:{from:'C4',to:'C5'},
+    meet:'A <b>scale</b> climbs every white key from C up to the next C, like a ladder, then climbs back down.',meetGlow:['C4','D4','E4','F4','G4','A4','B4','C5'],
+    demoLabel:'Hear the scale',demo(){['C4','D4','E4','F4','G4','A4','B4','C5'].forEach((n,k)=>later(()=>{tone(n);flash(n,350)},k*420))},
+    try:()=>[patternRound('C D E F G A B C5',{glow:true})],play:()=>[patternRound('C D E F G A B C5 B A G F E D C',{maxSlips:4,say:'Climb up the ladder and back down.'})],need:1,pass:'4 slips or fewer'},
+  {id:'7.5',unit:7,title:'Show time: Graduation',idea:'Everything together',show:true,
+    meet:'Show time! The graduation challenge has one task from each part of the course: note names, reading, rhythm, two hands and the scale. Finish it to earn your certificate.',
+    try:()=>[detectRound('C')],
+    play:()=>[withRange(detectRound(rnd(['A','B'])),null),withRange(staveNoteRound(['C','D','E','F','G']),Z5),withRange(restRound('ta shh ta ta',66,false,'fail'),Z5),
+      withRange(patternRound('C3+C4 E3+E4 G3+G4',{maxSlips:2}),ZONES),withRange(patternRound('C D E F G A B C5',{maxSlips:2,say:'Climb the ladder one last time!'}),{from:'C4',to:'C5'})],need:0,pass:'Finishes the challenge'},
 ];
 const isDone=id=>!!store.course.done[id];
 const unlocked=k=>k===0||store.unlockAll||isDone(COURSE[k-1].id);
@@ -813,7 +973,11 @@ function warmRounds(){const pool=[];
   if(isDone('1.3'))pool.push(()=>findRound(rnd(['twin','triplet'])));
   if(isDone('1.5'))pool.push(()=>findRound('c'));
   const ls=[...(isDone('2.1')?['C','D','E']:[]),...(isDone('2.3')?['F','G']:[])];
+  if(isDone('7.1'))ls.push('A','B');
   if(ls.length){const w=ls.flatMap(l=>Array(1+Math.min(4,store.miss[l]||0)).fill(l));pool.push(()=>detectRound(rnd(w)),()=>detectRound(rnd(w)))}
+  if(isDone('4.2'))pool.push(()=>withRange(patternRound(rnd(['G3 F3 E3','C3 D3 E3','E3 D3 C3']),{say:'Left hand: play these low notes.'}),ZL));
+  if(isDone('5.1'))pool.push(()=>lineSpaceRound());
+  if(isDone('5.2'))pool.push(()=>staveNoteRound(isDone('5.4')?['C','D','E','F','G']:['C','D','E'],{colour:!isDone('5.4')}));
   return pool.length?R(3,()=>rnd(pool)()):[]}
 
 /* ---------- the course map ---------- */
@@ -822,7 +986,7 @@ function viewLearn(){
   const nextIdx=COURSE.findIndex((L,k)=>!isDone(L.id)&&unlocked(k));
   const greet=doneN===0?'Tap the bouncing stone to start your first lesson.':gap!=null&&gap>=3&&!(store.log[today()]>0)?'Welcome back! Let\'s carry on where you left off.':ws.days?`You've practised ${ws.days} day${ws.days>1?'s':''} this week.`:'Ready for today\'s lesson?';
   stage.innerHTML=`<div class="wrap">
-    <div class="maphead"><div><p class="eyebrow">Your piano journey</p><h2>${doneN===COURSE.length?'Units 1 to 3 complete!':'Learn to play, one step at a time'}</h2><p class="lede">${greet}</p></div>
+    <div class="maphead"><div><p class="eyebrow">Your piano journey</p><h2>${doneN===COURSE.length?'You finished the course!':'Learn to play, one step at a time'}</h2><p class="lede">${greet}</p>${store.graduated?'<button class="btn ghost" id="cert">See your certificate</button>':''}</div>
       <div class="stickers" aria-label="Sticker book">${UNITS.filter(u=>!u.soon).map(u=>{const has=store.stickers.includes(u.n);return`<div class="sticker${has?'':' no'}" style="--c:${u.c}"><i>${has?'★':'?'}</i>${has?u.sticker:'Unit '+u.n}</div>`}).join('')}</div></div>
     ${UNITS.map(u=>{if(u.soon)return`<section class="island soon"><div class="ihead"><span class="eyebrow">Unit ${u.n}</span><h3>${u.name}</h3><span class="ucount">Coming soon</span></div></section>`;
       const ls=COURSE.map((L,k)=>({L,k})).filter(x=>x.L.unit===u.n),dn=ls.filter(x=>isDone(x.L.id)).length;
@@ -832,14 +996,15 @@ function viewLearn(){
     <button class="grown" id="grown"><span class="gfill"></span><span class="glab">Grown-ups: press and hold</span></button>
   </div>`;
   stage.querySelectorAll('.stone').forEach(s=>s.onclick=()=>{const k=+s.dataset.k;if(unlocked(k))openCourseLesson(k);else{s.classList.remove('nope');void s.offsetWidth;s.classList.add('nope')}});
-  holdToOpen($('#grown'),openParent);
+  holdToOpen($('#grown'),openParent);const cb=$('#cert');if(cb)cb.onclick=openCert;
   const nx=stage.querySelector('.stone.next');if(nx&&nx.getBoundingClientRect().top>stage.clientHeight)nx.scrollIntoView({block:'center'});
 }
 
 /* ---------- one lesson: warm-up, meet, try, play, celebrate ---------- */
 function openCourseLesson(idx){
   clearTimers();modal.hidden=true;const L=COURSE[idx];
-  if(L.zoom)setRange(L.zoom);else if(keyRange)setRange(null);
+  setRange(L.zoom||null);setNoLabels(!!L.noLabels);
+  const opt={baseRange:L.zoom||null,baseNoLabels:!!L.noLabels};
   const PH=['Warm-up','Meet','Try','Play','Celebrate'];
   function shell(p){clearTimers();activity=null;
     stage.innerHTML=`<div class="wrap"><button class="back" id="back">‹ Map</button><div class="panel lesson">
@@ -847,14 +1012,15 @@ function openCourseLesson(idx){
       <ol class="steps5" aria-label="Lesson steps">${PH.map((x,k)=>`<li class="${k<p?'done':k===p?'cur':''}"${k===p?' aria-current="step"':''}>${x}</li>`).join('')}</ol>
       <div class="lbody" id="lbody"></div></div></div>`;
     $('#back').onclick=()=>show('learn');stage.scrollTop=0;return $('#lbody')}
-  function warm(){const rs=warmRounds();if(!rs.length)return meet();const b=shell(0);runRounds(b,rs,{mode:'warm'},meet)}
-  function meet(){const b=shell(1);
-    b.innerHTML=`<p class="idea">New: ${L.idea}</p><p class="say">${L.meet}</p>${L.meetView?L.meetView():''}
+  function warm(){const rs=warmRounds();if(!rs.length)return meet();const b=shell(0);runRounds(b,rs,{mode:'warm',baseRange:null,baseNoLabels:false},meet)}
+  function meet(){const b=shell(1);setRange(L.zoom||null);setNoLabels(!!L.noLabels);
+    const tip=L.zoom&&L.zoom.zones&&innerWidth<600&&innerHeight>innerWidth?'<p class="tip">Tip: turn your phone sideways to give both hands more room.</p>':'';
+    b.innerHTML=`<p class="idea">New: ${L.idea}</p><p class="say">${L.meet}</p>${L.meetView?L.meetView():''}${tip}
       <div class="row">${L.demo?`<button class="btn ghost" id="demo">${L.demoLabel}</button>`:''}<button class="btn" id="go">Let's try ›</button></div>`;
     activity={locked:false,targets:()=>L.meetGlow||[],onNote(){}};glow();
     if(L.demo)$('#demo').onclick=()=>L.demo();$('#go').onclick=tryIt}
-  function tryIt(){const b=shell(2);runRounds(b,L.try(),{mode:'try',tries:L.tries||1},playIt)}
-  function playIt(){const b=shell(3);runRounds(b,L.play(),{mode:'play',tries:L.tries||1},finish)}
+  function tryIt(){const b=shell(2);runRounds(b,L.try(),{mode:'try',tries:L.tries||1,...opt},playIt)}
+  function playIt(){const b=shell(3);runRounds(b,L.play(),{mode:'play',tries:L.tries||1,...opt},finish)}
   function finish(r){const passed=L.need?r.right>=L.need:true;
     if(L.id==='3.1')store.slow31=!passed;
     const b=shell(4);activity={locked:false,targets:()=>[],onNote(){}};
@@ -865,15 +1031,23 @@ function openCourseLesson(idx){
     store.course.done[L.id]=Math.max(store.course.done[L.id]||0,stars);award('c'+L.id,stars);
     const U=UNITS[L.unit-1],newSticker=L.show&&!store.stickers.includes(L.unit);if(newSticker)store.stickers.push(L.unit);save();
     const nx=COURSE[idx+1];fanfare();
+    const grad=L.id==='7.5';if(grad&&!store.graduated){store.graduated=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});save()}
     b.innerHTML=`<div class="bigstars">${[1,2,3].map(i=>i<=stars?'<i>★</i>':'★').join('')}</div>
       <p class="say">${L.show?`Unit ${L.unit} complete!`:pick(['Brilliant work!','You did it!','Super playing!'])}</p>
-      ${newSticker?`<div class="sticker big" style="--c:${U.c}"><i>★</i>New sticker: ${U.sticker}</div>`:''}
-      <p class="lede">${stars<3?'Play it again any time to win more stars.':'Three stars!'} ${nx?`Next up: <b>${nx.id} ${nx.title}</b>.`:'Units 4 to 7 are coming soon.'}</p>
+      ${newSticker?`<div class="sticker big" style="--c:${U.c}"><i>★</i>New sticker: ${U.sticker}</div>`:''}${grad?certHTML():''}
+      <p class="lede">${stars<3?'Play it again any time to win more stars.':'Three stars!'} ${nx?`Next up: <b>${nx.id} ${nx.title}</b>.`:'You have finished the whole course!'}</p>
       <div class="row">${nx?'<button class="btn" id="next">Next lesson ›</button>':''}<button class="btn ghost" id="map">Back to map</button><button class="btn ghost" id="again">Play again</button></div>`;
     if(nx)$('#next').onclick=()=>openCourseLesson(idx+1);$('#map').onclick=()=>show('learn');$('#again').onclick=()=>openCourseLesson(idx);
     ($('#next')||$('#map')).focus()}
   warm();
 }
+
+/* ---------- graduation certificate ---------- */
+function certHTML(){return`<div class="cert"><p class="eyebrow">Certificate</p><h3>Little Keys Graduate</h3>
+  <p>Awarded to a brilliant young pianist for finishing all ${COURSE.length} lessons of the Little Keys course: from finding middle C to reading notes and playing with both hands.</p>
+  <p class="certdate">${store.graduated||''}</p><div class="certstars">★ ★ ★</div></div>`}
+function openCert(){modal.innerHTML=`<div class="panel" role="dialog" aria-modal="true" aria-label="Certificate">${certHTML()}<div class="row" style="justify-content:center"><button class="btn" id="cclose">Close</button></div></div>`;
+  modal.hidden=false;$('#cclose').onclick=()=>{modal.hidden=true;modal.innerHTML=''};$('#cclose').focus()}
 
 /* ---------- grown-ups area (press and hold for 3 seconds) ---------- */
 function holdToOpen(btn,fn){let t=null;const go=e=>{if(e&&e.type==='keydown'&&(e.repeat||!['Enter',' '].includes(e.key)))return;e&&e.preventDefault();btn.classList.add('holding');t=setTimeout(()=>{btn.classList.remove('holding');fn()},3000)};
